@@ -89,24 +89,20 @@ function init() {
         }
     });
 
-    renderer.domElement.addEventListener('click', () => {
+    function handleClick() {
         if (gameState.state === 'MENU') {
             startGame();
         } else if (gameState.state === 'PLAYING') {
-            // Resume from pause
             document.getElementById('menu-screen').style.display = 'none';
             controls.lockPointer(renderer.domElement);
         } else if (gameState.state === 'LEVEL_COMPLETE') {
             restartGame();
         }
-    });
+    }
 
-    // Level complete screen also needs to capture clicks
-    document.getElementById('level-complete').addEventListener('click', () => {
-        if (gameState.state === 'LEVEL_COMPLETE') {
-            restartGame();
-        }
-    });
+    renderer.domElement.addEventListener('click', handleClick);
+    document.getElementById('menu-screen').addEventListener('click', handleClick);
+    document.getElementById('level-complete').addEventListener('click', handleClick);
 
     // Create engine exhaust particles
     createParticles(THREE);
