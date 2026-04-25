@@ -1,5 +1,5 @@
 // audio.js — Procedural industrial soundtrack (Web Audio API)
-// 72-bar arrangement with swing, slides, accents, delay, acid + scream solos
+// 108-bar arrangement (~3:19) with swing, slides, accents, delay, acid + scream solos
 
 export class SoundtrackManager {
     constructor() {
@@ -188,7 +188,7 @@ export class SoundtrackManager {
             ],
         };
 
-        // ===== 72-bar arrangement (~2:13) =====
+        // ===== 108-bar arrangement (~3:19) =====
         // solo: key into soloBank, soloType: instrument selector
         // Negative notes in phrases = accented, consecutive notes = portamento slide
         this.arrangement = [
@@ -197,14 +197,16 @@ export class SoundtrackManager {
             { pat: 1, bars: 2, bass: 1 },
             { pat: 2, bars: 4, bass: 1 },
 
-            // --- Acid solo (16 bars): opening → climbing → fast runs → peak ---
-            { pat: 8, bars: 4, bass: 0, solo: 'acidA', soloType: 'acid' },
-            { pat: 3, bars: 4, bass: 2, solo: 'acidB', soloType: 'acid' },
-            { pat: 6, bars: 4, bass: 4, solo: 'acidC', soloType: 'acid' },
-            { pat: 6, bars: 3, bass: 7, solo: 'acidD', soloType: 'acid' },
-            { pat: 7, bars: 1, bass: 5 },
+            // --- Acid solo (32 bars) ---
+            { pat: 8, bars: 8, bass: 0, solo: 'acidA', soloType: 'acid' },   // opening x2
+            { pat: 3, bars: 4, bass: 1 },                                     // breathe
+            { pat: 6, bars: 8, bass: 2, solo: 'acidB', soloType: 'acid' },   // climbing x2
+            { pat: 2, bars: 4, bass: 4 },                                     // breathe
+            { pat: 6, bars: 4, bass: 4, solo: 'acidC', soloType: 'acid' },   // fast runs
+            { pat: 6, bars: 3, bass: 7, solo: 'acidD', soloType: 'acid' },   // peak
+            { pat: 7, bars: 1, bass: 5 },                                     // fill
 
-            // --- Groove, let it breathe (8 bars) ---
+            // --- Groove (8 bars) ---
             { pat: 2, bars: 4, bass: 1 },
             { pat: 3, bars: 3, bass: 2 },
             { pat: 7, bars: 1, bass: 5 },
@@ -213,18 +215,21 @@ export class SoundtrackManager {
             { pat: 4, bars: 4, bass: 3 },
             { pat: 5, bars: 4, bass: 7 },
 
-            // --- Scream solo (16 bars): attacks → wail → rapid → chaos ---
-            { pat: 6, bars: 4, bass: 4, solo: 'screamA', soloType: 'scream' },
-            { pat: 8, bars: 4, bass: 6, solo: 'screamB', soloType: 'scream' },
-            { pat: 6, bars: 4, bass: 7, solo: 'screamC', soloType: 'scream' },
-            { pat: 6, bars: 3, bass: 2, solo: 'screamD', soloType: 'scream' },
-            { pat: 7, bars: 1, bass: 5 },
+            // --- Scream solo (32 bars) ---
+            { pat: 6, bars: 8, bass: 4, solo: 'screamA', soloType: 'scream' }, // attacks x2
+            { pat: 4, bars: 4, bass: 3 },                                       // breathe
+            { pat: 8, bars: 8, bass: 6, solo: 'screamB', soloType: 'scream' }, // wail x2
+            { pat: 5, bars: 4, bass: 7 },                                       // breathe
+            { pat: 6, bars: 4, bass: 7, solo: 'screamC', soloType: 'scream' }, // rapid fire
+            { pat: 6, bars: 3, bass: 2, solo: 'screamD', soloType: 'scream' }, // chaos
+            { pat: 7, bars: 1, bass: 5 },                                       // fill
 
-            // --- Climax & resolution (16 bars) ---
+            // --- Climax & resolution (20 bars) ---
             { pat: 2, bars: 4, bass: 1 },
             { pat: 6, bars: 4, bass: 4 },
-            { pat: 3, bars: 4, bass: 2, solo: 'acidE', soloType: 'acid' },
-            { pat: 0, bars: 3, bass: 0, solo: 'screamE', soloType: 'scream' },
+            { pat: 3, bars: 4, bass: 2 },
+            { pat: 3, bars: 4, bass: 2, solo: 'acidE', soloType: 'acid' },     // acid cooldown
+            { pat: 0, bars: 3, bass: 0, solo: 'screamE', soloType: 'scream' }, // scream fade
             { pat: 7, bars: 1, bass: 5 },
         ];
     }
