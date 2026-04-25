@@ -97,12 +97,14 @@ function init() {
             document.getElementById('menu-screen').style.display = 'none';
             controls.lockPointer(renderer.domElement);
         } else if (gameState.state === 'LEVEL_COMPLETE') {
-            // Restart
-            scene.clear();
-            const ambient = new THREE.AmbientLight(0x111133, 0.3);
-            scene.add(ambient);
-            buildLevel();
-            startGame();
+            restartGame();
+        }
+    });
+
+    // Level complete screen also needs to capture clicks
+    document.getElementById('level-complete').addEventListener('click', () => {
+        if (gameState.state === 'LEVEL_COMPLETE') {
+            restartGame();
         }
     });
 
@@ -172,6 +174,28 @@ function startGame() {
     document.getElementById('menu-screen').style.display = 'none';
     document.getElementById('level-complete').style.display = 'none';
     controls.lockPointer(renderer.domElement);
+}
+
+function restartGame() {
+    // Remove old maze and ore groups from scene
+    if (mazeData && mazeData.group) scene.remove(mazeData.group);
+    if (oreGroup) scene.remove(oreGroup);
+
+    // Reset game state
+    gameState = new GameState();
+    window._gameState = gameState;
+
+    // Rebuild maze
+    buildLevel();
+
+    // Reset menu title back to normal for next pause
+    const menu = document.getElementById('menu-screen');
+    menu.querySelector('h1').textContent = 'SLIME MINER';
+    menu.querySelector('.subtitle').textContent = 'DESCENT INTO THE SLIME';
+    menu.querySelector('.prompt').textContent = '[ CLICK TO START ]';
+
+    // Start playing
+    startGame();
 }
 
 function createParticles(THREE) {
