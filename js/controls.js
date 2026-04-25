@@ -87,9 +87,10 @@ export class ShipControls {
         this.mouseDX = 0;
         this.mouseDY = 0;
 
-        // Lerp toward clamped target for smooth feel
-        this.smoothDX += (clampedDX - this.smoothDX) * this.mouseSmoothing;
-        this.smoothDY += (clampedDY - this.smoothDY) * this.mouseSmoothing;
+        // Lerp toward clamped target for smooth feel (dt-corrected)
+        const mouseLerp = 1 - Math.pow(1 - this.mouseSmoothing, dt * 60);
+        this.smoothDX += (clampedDX - this.smoothDX) * mouseLerp;
+        this.smoothDY += (clampedDY - this.smoothDY) * mouseLerp;
 
         const yawDelta = -this.smoothDX * this.mouseSensitivity;
         const pitchDelta = -this.smoothDY * this.mouseSensitivity;
@@ -135,10 +136,11 @@ export class ShipControls {
         this.velocity.y += thrust.y;
         this.velocity.z += thrust.z;
 
-        // Damping
-        this.velocity.x *= this.brakeFactor;
-        this.velocity.y *= this.brakeFactor;
-        this.velocity.z *= this.brakeFactor;
+        // Damping — frame-rate independent (normalized to 60fps)
+        const damping = Math.pow(this.brakeFactor, dt * 60);
+        this.velocity.x *= damping;
+        this.velocity.y *= damping;
+        this.velocity.z *= damping;
 
         // Clamp speed
         const speed = Math.sqrt(
