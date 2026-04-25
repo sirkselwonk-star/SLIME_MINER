@@ -1,5 +1,5 @@
 // audio.js — Procedural industrial soundtrack (Web Audio API)
-// 32-bar arrangement cycle with swing, ghost notes, and section-based bass
+// 64-bar arrangement with swing, ghost notes, acid solo, and scream solo
 
 export class SoundtrackManager {
     constructor() {
@@ -7,86 +7,90 @@ export class SoundtrackManager {
         this.playing = false;
         this.muted = false;
         this.bpm = 130;
-        this.stepLength = 60 / this.bpm / 4; // 16th note duration
-        this.swingRatio = 0.58; // 0.5=straight, 0.67=triplet — subtle push
+        this.stepLength = 60 / this.bpm / 4;
+        this.swingRatio = 0.58;
         this._interval = null;
         this._continuousNodes = [];
 
-        // Master chain nodes
         this.masterGain = null;
         this.compressor = null;
         this.distortion = null;
         this._noiseBuffer = null;
 
-        // Transport state
+        // Transport
         this.stepIndex = 0;
         this.barCount = 0;
-        this.arrIndex = 0;   // index into arrangement
+        this.arrIndex = 0;
         this.barInSection = 0;
 
-        // --- Pattern bank (velocity 0.0–1.0 per step) ---
-        // Each pattern is one bar of 16 steps (16th notes in 4/4)
+        // ===== Pattern bank (velocity 0.0–1.0 per step) =====
         //                        1  .  .  .   2  .  .  .   3  .  .  .   4  .  .  .
         this.patBank = [
-            // 0: "Stripped" — kick + sparse hat, builds tension
+            // 0: "Stripped"
             { kick:    [1, 0, 0, 0,  0, 0, 0, 0,  1, 0, 0, 0,  0, 0, 0, 0],
               clank:   [0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0],
               hihat:   [0, 0,.5, 0,  0, 0,.5, 0,  0, 0,.5, 0,  0, 0,.5, 0],
               openHat: [0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0],
               metal:   [.4,0, 0, 0,  0, 0, 0, 0, .4, 0, 0, 0,  0, 0, 0, 0] },
 
-            // 1: "Building" — snare enters, kick ghost notes add push
+            // 1: "Building"
             { kick:    [1, 0, 0, 0, .8, 0, 0,.3,  1, 0, 0, 0, .8, 0,.6, 0],
               clank:   [0, 0, 0, 0,  1, 0, 0, 0,  0, 0, 0, 0,  1, 0, 0, 0],
               hihat:   [.5,0, 1,.3, .5, 0, 1,.3, .5, 0, 1,.3, .5, 0, 1,.3],
               openHat: [0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0],
               metal:   [0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0,.5] },
 
-            // 2: "Main Groove A" — full kit, syncopated kick, open hat on 4-and
+            // 2: "Main Groove A"
             { kick:    [1, 0, 0, 0, .8, 0, 0,.3,  1, 0,.3, 0, .7, 0, 1, 0],
               clank:   [0, 0, 0, 0,  1, 0, 0, 0,  0, 0, 0, 0,  1, 0, 0,.4],
               hihat:   [.6,0, 1,.3, .6, 0, 1,.3, .6, 0, 1,.3, .6, 0, 0, 0],
               openHat: [0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 1, 0],
               metal:   [.7,0, 0, 0,  0, 0,.4, 0,  0, 0, 0, 0,  0, 0, 0, 0] },
 
-            // 3: "Main Groove B" — shifted kick, ghost hats, different accent
+            // 3: "Main Groove B"
             { kick:    [1, 0, 0,.3,  0, 0, 1, 0, .8, 0, 0, 0, .5, 0, 1,.3],
               clank:   [0, 0, 0, 0,  1, 0, 0, 0,  0, 0, 0,.4,  1, 0, 0, 0],
               hihat:   [.6,.3,1,.3, .6,.3, 1, 0, .6,.3, 1,.3, .5, 0, 0, 0],
               openHat: [0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 1],
               metal:   [0, 0, 0,.5,  0, 0, 0, 0, .6, 0, 0, 0,  0, 0,.4, 0] },
 
-            // 4: "Breakdown" — half-time, sparse, menacing
+            // 4: "Breakdown"
             { kick:    [1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0],
               clank:   [0, 0, 0, 0,  0, 0, 0, 0,  1, 0, 0, 0,  0, 0, 0, 0],
               hihat:   [0, 0, 0, 0, .4, 0, 0, 0,  0, 0, 0, 0, .4, 0, 0, 0],
               openHat: [0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0],
               metal:   [.5,0, 0, 0,  0, 0, 0, 0, .3, 0, 0, 0,  0, 0, 0, 0] },
 
-            // 5: "Rebuild" — climbing back from breakdown, momentum
+            // 5: "Rebuild"
             { kick:    [1, 0, 0, 0, .6, 0, 0, 0,  1, 0, 0, 0, .6, 0, 0,.3],
               clank:   [0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, .8, 0, 0, 0],
               hihat:   [.5,0,.7, 0, .5, 0,.7, 0, .5, 0,.7, 0, .5, 0,.7,.3],
               openHat: [0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0],
               metal:   [0, 0, 0, 0,  0, 0,.4, 0,  0, 0, 0, 0,  0, 0,.4, 0] },
 
-            // 6: "Heavy" — dense 16th hats, driving kick, peak energy
+            // 6: "Heavy"
             { kick:    [1, 0,.3, 0,  1, 0, 0,.3,  1, 0,.3, 0,  1, 0, 1,.3],
               clank:   [0, 0, 0, 0,  1, 0, 0,.3,  0, 0, 0, 0,  1, 0, 0, 0],
               hihat:   [.7,.3,.8,.3, .7,.3,.8,.3, .7,.3,.8,.3, .7,.3,.8, 0],
               openHat: [0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0,.8],
               metal:   [1, 0, 0, 0,  0, 0,.5, 0,  0, 0, 0,.4,  0, 0, 0, 0] },
 
-            // 7: "Fill" — kick roll, snare roll, crash — turnaround bar
+            // 7: "Fill"
             { kick:    [1, 0, 0, 0,  1, 0, 1, 0,  1, 0, 1, 1,  1, 1, 1, 1],
               clank:   [0, 0, 0, 0,  0, 0, 0, 0, .3, 0,.4, 0, .5,.6,.8, 1],
               hihat:   [0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0],
               openHat: [1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 1],
               metal:   [0, 0, 0, 0,  0, 0, 0, 0, .3,.3,.5,.5, .7,.7, 1, 1] },
+
+            // 8: "Solo bed" — stripped-back groove that gives solos room
+            { kick:    [1, 0, 0, 0, .6, 0, 0, 0,  1, 0, 0, 0, .6, 0,.5, 0],
+              clank:   [0, 0, 0, 0, .7, 0, 0, 0,  0, 0, 0, 0, .7, 0, 0, 0],
+              hihat:   [.4,0,.6, 0, .4, 0,.6, 0, .4, 0,.6, 0, .4, 0,.6, 0],
+              openHat: [0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0],
+              metal:   [0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0] },
         ];
 
-        // --- Bass progressions (step → frequency pairs) ---
-        // Each entry: [[step, freq], ...]
+        // ===== Bass progressions =====
         this.bassProgs = [
             /* 0  root    */ [[0, 55]],
             /* 1  minor   */ [[0, 55], [8, 41.2], [12, 49]],
@@ -94,23 +98,82 @@ export class SoundtrackManager {
             /* 3  low-D   */ [[0, 36.7]],
             /* 4  eighth  */ [[0,55],[2,55],[4,41.2],[6,41.2],[8,49],[10,49],[12,55],[14,55]],
             /* 5  descend */ [[0, 55], [4, 49], [8, 41.2], [12, 36.7]],
+            /* 6  pedal-E */ [[0, 41.2]],
+            /* 7  climb   */ [[0, 41.2], [4, 49], [8, 55], [12, 55]],
         ];
 
-        // --- 32-bar arrangement cycle ---
-        // pat = patBank index, bars = how many bars, bass = bassProgs index
+        // ===== Solo phrases =====
+        // Each solo = array of bars, each bar = 16 steps, value = freq (0 = rest)
+        // A minor pentatonic: A=110/220/440, C=130.8/261.6, D=146.8/293.7,
+        //                     E=164.8/329.6, G=196/392
+
+        this.soloBank = {
+            // --- Acid lead (lower register, squelchy) ---
+            acidA: [
+                //  1  .  .  .   2  .  .  .   3  .  .  .   4  .  .  .
+                [110,  0,  0,  0, 130.8,0,164.8,0, 146.8,0,  0,  0, 130.8,0,110,  0],
+                [130.8,0,146.8,0, 164.8,0,196,  0, 220,  0,  0,  0, 196,  0,164.8,0],
+                [220,  0,  0,196, 164.8,0,  0,  0, 130.8,0,146.8,0, 164.8,0,130.8,0],
+                [110,  0,  0,  0,   0,  0,130.8,0, 110,  0,  0,  0,   0,  0,  0,  0],
+            ],
+            // --- Acid lead (higher register, peak intensity) ---
+            acidB: [
+                [220,  0,  0,  0, 261.6,0,329.6,0, 293.7,0,  0,  0, 261.6,0,220,  0],
+                [261.6,0,293.7,0, 329.6,0,392,  0, 440,  0,  0,  0, 392,  0,329.6,0],
+                [440,  0,  0,392, 329.6,0,293.7,0, 261.6,0,  0,  0, 220,  0,261.6,0],
+                [329.6,0,293.7,0, 261.6,0,220,  0, 196,  0,  0,  0,   0,  0,  0,  0],
+            ],
+
+            // --- Scream lead (mid-range, aggressive with repeated attacks) ---
+            screamA: [
+                [220,  0,  0,  0,   0,  0,220,  0, 261.6,0,  0,  0, 220,  0,196,  0],
+                [164.8,0,196,  0, 220,  0,261.6,0, 293.7,0,  0,  0, 261.6,0,220,  0],
+                [329.6,0,  0,  0, 293.7,0,261.6,0, 220,  0,196,  0, 164.8,0,  0,  0],
+                [110,  0,  0,110,   0,  0,110,  0,   0,  0,  0,  0, 220,  0,  0,  0],
+            ],
+            // --- Scream lead (higher, wilder, peak aggression) ---
+            screamB: [
+                [329.6,0,293.7,0, 329.6,0,  0,  0, 440,  0,329.6,0, 293.7,0,261.6,0],
+                [329.6,0,  0,  0, 440,  0,329.6,0, 293.7,0,  0,  0, 261.6,0,293.7,0],
+                [440,  0,329.6,0, 440,  0,  0,  0, 329.6,0,293.7,0, 261.6,0,  0,  0],
+                [220,  0,220,  0, 220,  0,  0,  0, 329.6,0,  0,  0,   0,  0,  0,  0],
+            ],
+        };
+
+        // ===== 64-bar arrangement (~2 minutes) =====
+        // solo: key into soloBank, type: which instrument method
         this.arrangement = [
-            { pat: 0, bars: 2, bass: 0 },   // Intro — stripped, root drone
-            { pat: 1, bars: 2, bass: 1 },   // Build — snare enters
-            { pat: 2, bars: 4, bass: 1 },   // Main groove A
-            { pat: 3, bars: 4, bass: 2 },   // Main groove B — darker bass
-            { pat: 4, bars: 2, bass: 3 },   // Breakdown — low D
-            { pat: 5, bars: 2, bass: 1 },   // Rebuild — momentum
-            { pat: 6, bars: 4, bass: 4 },   // Heavy — eighth-note bass
-            { pat: 2, bars: 4, bass: 2 },   // Return to main — dark bass
-            { pat: 3, bars: 3, bass: 1 },   // Main B
-            { pat: 7, bars: 1, bass: 5 },   // Fill — turnaround
-            { pat: 4, bars: 2, bass: 3 },   // Breakdown reprise
-            { pat: 6, bars: 2, bass: 4 },   // Heavy return
+            // --- Intro & build (8 bars) ---
+            { pat: 0, bars: 2, bass: 0 },
+            { pat: 1, bars: 2, bass: 1 },
+            { pat: 2, bars: 4, bass: 1 },
+
+            // --- Acid solo section (12 bars) ---
+            { pat: 8, bars: 4, bass: 2, solo: 'acidA', soloType: 'acid' },
+            { pat: 3, bars: 4, bass: 2, solo: 'acidA', soloType: 'acid' },
+            { pat: 6, bars: 4, bass: 4, solo: 'acidB', soloType: 'acid' },
+
+            // --- Groove, let it breathe (8 bars) ---
+            { pat: 2, bars: 4, bass: 1 },
+            { pat: 3, bars: 3, bass: 2 },
+            { pat: 7, bars: 1, bass: 5 },
+
+            // --- Breakdown (8 bars) ---
+            { pat: 4, bars: 4, bass: 3 },
+            { pat: 5, bars: 4, bass: 7 },
+
+            // --- Scream solo section (12 bars) ---
+            { pat: 6, bars: 4, bass: 4, solo: 'screamA', soloType: 'scream' },
+            { pat: 8, bars: 4, bass: 6, solo: 'screamA', soloType: 'scream' },
+            { pat: 6, bars: 3, bass: 4, solo: 'screamB', soloType: 'scream' },
+            { pat: 7, bars: 1, bass: 5 },
+
+            // --- Climax & resolution (16 bars) ---
+            { pat: 2, bars: 4, bass: 1 },
+            { pat: 3, bars: 4, bass: 2 },
+            { pat: 6, bars: 4, bass: 4 },
+            { pat: 2, bars: 3, bass: 1 },
+            { pat: 7, bars: 1, bass: 5 },
         ];
     }
 
@@ -207,15 +270,13 @@ export class SoundtrackManager {
         for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
     }
 
-    // ========== Beat scheduler with swing ==========
+    // ========== Scheduler with swing ==========
 
     _scheduler() {
         while (this.nextStepTime < this.ctx.currentTime + 0.1) {
             this._scheduleStep(this.stepIndex, this.nextStepTime);
 
-            // Advance step with swing timing
-            // Pairs of 16ths: even→odd gets stretched, odd→even gets compressed
-            const pairDur = this.stepLength * 2; // one 8th note
+            const pairDur = this.stepLength * 2;
             if (this.stepIndex % 2 === 0) {
                 this.nextStepTime += pairDur * this.swingRatio;
             } else {
@@ -244,16 +305,32 @@ export class SoundtrackManager {
         const section = this.arrangement[this.arrIndex];
         const pat = this.patBank[section.pat];
 
+        // Drums
         if (pat.kick[step])    this._playKick(time, pat.kick[step]);
         if (pat.clank[step])   this._playClank(time, pat.clank[step]);
         if (pat.hihat[step])   this._playHihat(time, pat.hihat[step]);
         if (pat.openHat[step]) this._playOpenHat(time, pat.openHat[step]);
         if (pat.metal[step])   this._playMetallic(time, pat.metal[step]);
 
+        // Bass
         this._updateBass(step, time, section.bass);
+
+        // Solo
+        if (section.solo) {
+            const phrase = this.soloBank[section.solo];
+            const bar = this.barInSection % phrase.length;
+            const note = phrase[bar][step];
+            if (note > 0) {
+                if (section.soloType === 'acid') {
+                    this._playAcidNote(time, note);
+                } else if (section.soloType === 'scream') {
+                    this._playScreamNote(time, note);
+                }
+            }
+        }
     }
 
-    // ========== Percussion instruments (velocity-scaled) ==========
+    // ========== Percussion (velocity-scaled) ==========
 
     _playKick(time, vel) {
         const ctx = this.ctx;
@@ -267,7 +344,6 @@ export class SoundtrackManager {
         gain.gain.setValueAtTime(0.75 * vel, time);
         gain.gain.exponentialRampToValueAtTime(0.001, time + 0.25);
 
-        // Sub layer
         const sub = ctx.createOscillator();
         sub.type = 'sine';
         sub.frequency.setValueAtTime(55, time);
@@ -306,7 +382,6 @@ export class SoundtrackManager {
         bp.connect(noiseGain);
         noiseGain.connect(this.distortion);
 
-        // Metallic ring
         const ring = ctx.createOscillator();
         ring.type = 'square';
         ring.frequency.value = 185;
@@ -388,6 +463,69 @@ export class SoundtrackManager {
         }
     }
 
+    // ========== Solo instruments ==========
+
+    _playAcidNote(time, freq) {
+        // TB-303 style: sawtooth → resonant lowpass with per-note filter sweep
+        const ctx = this.ctx;
+
+        const osc = ctx.createOscillator();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freq, time);
+
+        // High resonance filter = the classic acid squelch
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.Q.value = 14;
+        filter.frequency.setValueAtTime(freq * 10, time);
+        filter.frequency.exponentialRampToValueAtTime(freq * 1.2, time + 0.14);
+
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.16, time);
+        gain.gain.setTargetAtTime(0.07, time + 0.01, 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.22);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.distortion);
+
+        osc.start(time);
+        osc.stop(time + 0.22);
+    }
+
+    _playScreamNote(time, freq) {
+        // Aggressive distorted square wave with pitch bend
+        const ctx = this.ctx;
+
+        const osc = ctx.createOscillator();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(freq * 0.97, time);
+        osc.frequency.exponentialRampToValueAtTime(freq, time + 0.025);
+
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.Q.value = 6;
+        filter.frequency.setValueAtTime(freq * 8, time);
+        filter.frequency.exponentialRampToValueAtTime(freq * 2, time + 0.18);
+
+        // Extra distortion layer
+        const crunch = ctx.createWaveShaper();
+        crunch.curve = this._makeDistortionCurve(25);
+
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.10, time);
+        gain.gain.setTargetAtTime(0.05, time + 0.01, 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.28);
+
+        osc.connect(filter);
+        filter.connect(crunch);
+        crunch.connect(gain);
+        gain.connect(this.compressor);
+
+        osc.start(time);
+        osc.stop(time + 0.28);
+    }
+
     // ========== Continuous layers ==========
 
     _startBass() {
@@ -422,7 +560,6 @@ export class SoundtrackManager {
         for (const [s, freq] of prog) {
             if (step === s) {
                 this._bassOsc.frequency.setValueAtTime(freq, time);
-                // Filter + volume envelope per note hit — adds groove pulse
                 this._bassFilter.frequency.setValueAtTime(350, time);
                 this._bassFilter.frequency.exponentialRampToValueAtTime(180, time + 0.1);
                 this._bassGain.gain.setValueAtTime(0.28, time);
