@@ -1005,7 +1005,7 @@ const SLIME_URLS = [
 
 
 // Max texture dimension — IPFS originals are downscaled to this on load
-const TEX_MAX = 512;
+const TEX_MAX = 256;
 
 // Render a nameplate canvas with SLIME name text
 function makeNameplateTexture(label) {
@@ -1056,7 +1056,7 @@ export class GalleryManager {
             [urlPool[i], urlPool[j]] = [urlPool[j], urlPool[i]];
         }
 
-        const count = Math.min(Math.max(35, Math.floor(keys.length / 25)), keys.length, urlPool.length);
+        const count = Math.min(keys.length, urlPool.length);
 
         for (let i = 0; i < count; i++) {
             const key = keys[i];
