@@ -74,10 +74,27 @@ function init() {
 
     // Events
     window.addEventListener('resize', onResize);
+
+    // Show pause screen when pointer lock is lost during gameplay
+    document.addEventListener('pointerlockchange', () => {
+        if (!document.pointerLockElement && gameState && gameState.state === 'PLAYING') {
+            const menu = document.getElementById('menu-screen');
+            const title = menu.querySelector('h1');
+            const subtitle = menu.querySelector('.subtitle');
+            const prompt = menu.querySelector('.prompt');
+            title.textContent = 'PAUSED';
+            subtitle.textContent = 'SLIME MINER';
+            prompt.textContent = '[ CLICK TO RESUME ]';
+            menu.style.display = 'flex';
+        }
+    });
+
     renderer.domElement.addEventListener('click', () => {
         if (gameState.state === 'MENU') {
             startGame();
         } else if (gameState.state === 'PLAYING') {
+            // Resume from pause
+            document.getElementById('menu-screen').style.display = 'none';
             controls.lockPointer(renderer.domElement);
         } else if (gameState.state === 'LEVEL_COMPLETE') {
             // Restart

@@ -32,6 +32,9 @@ export class ShipControls {
             if (e.code === 'Space' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
                 e.preventDefault();
             }
+            if (e.code === 'Escape') {
+                document.exitPointerLock();
+            }
         });
         document.addEventListener('keyup', e => {
             this.keys[e.code] = false;
