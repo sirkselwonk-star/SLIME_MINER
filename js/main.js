@@ -390,6 +390,9 @@ function animate() {
             gameState.updateVisited(gridPos.row, gridPos.col);
         }
 
+        // Update gallery LOD
+        if (gallery) gallery.update(camera.position);
+
         // Update particles
         updateParticles(dt);
 

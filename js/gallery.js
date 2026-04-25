@@ -1004,12 +1004,38 @@ const SLIME_URLS = [
 ];
 
 
-// Module-level caches — persist across level restarts, loaded once per session
-const artCache = new Map();   // url → THREE.CanvasTexture
-const plateCache = new Map(); // label → THREE.CanvasTexture
+// LOD settings
+const THUMB_SIZE = 128;  // Far-away texture resolution (~87MB for 1000)
+const FULL_SIZE = 512;   // Close-up texture resolution
+const LOD_NEAR = 8;      // Upgrade to hi-res within this distance
+const LOD_FAR = 12;      // Downgrade back beyond this distance
+const MAX_HIRES = 20;    // Max simultaneous full-res textures on GPU
+const LOD_INTERVAL = 500; // ms between LOD checks
 
-// Shared geometry/material — created once on first use
+// Module-level caches — persist across level restarts
+const thumbCache = new Map();  // url → THREE.CanvasTexture (128px)
+const hiResCache = new Map();  // url → THREE.CanvasTexture (512px)
+const imageCache = new Map();  // url → HTMLImageElement (for on-demand upscale)
+const plateCache = new Map();  // label → THREE.CanvasTexture
+
+// Shared geometry/material — created once
 let sharedFrameGeo, sharedArtGeo, sharedPlateGeo, sharedFrameMat;
+
+function downscale(img, maxDim, THREE) {
+    let w = img.width, h = img.height;
+    if (w > maxDim || h > maxDim) {
+        const scale = maxDim / Math.max(w, h);
+        w = Math.round(w * scale);
+        h = Math.round(h * scale);
+    }
+    const c = document.createElement('canvas');
+    c.width = w;
+    c.height = h;
+    c.getContext('2d').drawImage(img, 0, 0, w, h);
+    const tex = new THREE.CanvasTexture(c);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    return tex;
+}
 
 function makeNameplateTexture(label) {
     const c = document.createElement('canvas');
@@ -1041,10 +1067,15 @@ export class GalleryManager {
     constructor() {
         this.paintings = [];
         this._disposed = false;
+        this._THREE = null;
+        this._lastLOD = 0;
+        this._worldPos = null; // reusable vector
     }
 
     placeArtwork(wallMeshes, THREE) {
         this._disposed = false;
+        this._THREE = THREE;
+        this._worldPos = new THREE.Vector3();
         ensureSharedResources(THREE);
 
         const keys = Object.keys(wallMeshes);
@@ -1072,7 +1103,7 @@ export class GalleryManager {
             // Frame
             group.add(new THREE.Mesh(sharedFrameGeo, sharedFrameMat));
 
-            // Art plane — unique material per painting, texture from cache or async load
+            // Art plane
             const artMat = new THREE.MeshStandardMaterial({
                 color: 0x1a1a2e, roughness: 0.5, metalness: 0.0,
                 side: THREE.DoubleSide
@@ -1081,7 +1112,7 @@ export class GalleryManager {
             art.position.z = 0.01;
             group.add(art);
 
-            // Nameplate — cached per label
+            // Nameplate
             const numMatch = url.match(/SLIME%23(\d+)\.png/);
             const label = numMatch ? `SLIME #${numMatch[1]}` : 'SLIME';
             let plateTex = plateCache.get(label);
@@ -1097,7 +1128,7 @@ export class GalleryManager {
             plate.position.set(0, -0.92, 0.05);
             group.add(plate);
 
-            // Position offset based on wall direction
+            // Position offset
             if (dir === 'N') {
                 group.position.set(0, 0, 0.16);
             } else if (dir === 'S') {
@@ -1112,36 +1143,93 @@ export class GalleryManager {
             }
 
             wall.add(group);
-            this.paintings.push({ group, artMat, plateMat });
+            const painting = { group, artMat, plateMat, url, hiRes: false };
+            this.paintings.push(painting);
 
-            // Check art texture cache — skip network if already loaded
-            const cached = artCache.get(url);
-            if (cached) {
-                artMat.map = cached;
+            // Load image — create thumb immediately, cache image for hi-res on demand
+            if (thumbCache.has(url)) {
+                artMat.map = thumbCache.get(url);
                 artMat.color.set(0xffffff);
                 artMat.needsUpdate = true;
             } else {
-                new THREE.TextureLoader().load(
-                    url,
-                    (texture) => {
-                        if (this._disposed) return;
-                        texture.colorSpace = THREE.SRGBColorSpace;
-                        artCache.set(url, texture);
-                        artMat.map = texture;
-                        artMat.color.set(0xffffff);
-                        artMat.needsUpdate = true;
-                    },
-                    undefined,
-                    () => { /* keep placeholder on error */ }
-                );
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => {
+                    if (this._disposed) return;
+                    imageCache.set(url, img);
+                    const thumb = downscale(img, THUMB_SIZE, THREE);
+                    thumbCache.set(url, thumb);
+                    artMat.map = thumb;
+                    artMat.color.set(0xffffff);
+                    artMat.needsUpdate = true;
+                };
+                img.onerror = () => { /* keep placeholder */ };
+                img.src = url;
+            }
+        }
+    }
+
+    /** Call from animate loop — manages LOD texture swaps based on player distance */
+    update(playerPos) {
+        const now = performance.now();
+        if (now - this._lastLOD < LOD_INTERVAL) return;
+        this._lastLOD = now;
+
+        const THREE = this._THREE;
+        if (!THREE || this.paintings.length === 0) return;
+
+        // Calculate distances
+        const wp = this._worldPos;
+        const withDist = [];
+        for (const p of this.paintings) {
+            if (!p.group.parent || !p.group.parent.visible) continue;
+            p.group.getWorldPosition(wp);
+            const dx = playerPos.x - wp.x;
+            const dz = playerPos.z - wp.z;
+            p._dist = dx * dx + dz * dz; // squared distance
+            withDist.push(p);
+        }
+
+        // Sort by distance — nearest first
+        withDist.sort((a, b) => a._dist - b._dist);
+
+        const nearSq = LOD_NEAR * LOD_NEAR;
+        const farSq = LOD_FAR * LOD_FAR;
+        let hiCount = 0;
+
+        for (const p of withDist) {
+            const img = imageCache.get(p.url);
+            if (!img) continue; // not loaded yet
+
+            if (p._dist < nearSq && hiCount < MAX_HIRES) {
+                // Upgrade to hi-res
+                if (!p.hiRes) {
+                    let hiTex = hiResCache.get(p.url);
+                    if (!hiTex) {
+                        hiTex = downscale(img, FULL_SIZE, THREE);
+                        hiResCache.set(p.url, hiTex);
+                    }
+                    p.artMat.map = hiTex;
+                    p.artMat.needsUpdate = true;
+                    p.hiRes = true;
+                }
+                hiCount++;
+            } else if (p.hiRes && p._dist > farSq) {
+                // Downgrade to thumb
+                const thumb = thumbCache.get(p.url);
+                if (thumb) {
+                    p.artMat.map = thumb;
+                    p.artMat.needsUpdate = true;
+                    p.hiRes = false;
+                }
+            } else if (p.hiRes) {
+                hiCount++;
             }
         }
     }
 
     cleanup() {
         this._disposed = true;
-        // Remove painting groups from walls, dispose per-painting materials
-        // but keep cached textures alive for next level
         for (const p of this.paintings) {
             if (p.group.parent) p.group.parent.remove(p.group);
             p.artMat.dispose();
