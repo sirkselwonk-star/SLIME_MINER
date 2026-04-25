@@ -9,19 +9,24 @@ export class ShipControls {
         this.velocity = { x: 0, y: 0, z: 0 };
         this.rotVelocity = { pitch: 0, yaw: 0, roll: 0 };
 
-        // Tuning
+        // Tuning — comfort-focused
         this.thrustPower = 12;
-        this.brakeFactor = 0.92;   // velocity damping per frame
-        this.rotSpeed = 2.0;
+        this.brakeFactor = 0.85;   // stronger damping = less drift
+        this.rotSpeed = 1.0;       // slower roll
         this.rotDamping = 0.88;
-        this.maxSpeed = 15;
-        this.mouseSensitivity = 0.002;
+        this.maxSpeed = 10;        // reduced from 15
+        this.mouseSensitivity = 0.0015;
 
-        // Input state
+        // Mouse smoothing state
         this.keys = {};
         this.mouseDX = 0;
         this.mouseDY = 0;
+        this.smoothDX = 0;         // smoothed mouse output
+        this.smoothDY = 0;
+        this.mouseSmoothing = 0.4; // lerp factor (0=sluggish, 1=raw)
+        this.maxMouseDelta = 30;   // clamp per-frame pixel delta
         this.pointerLocked = false;
+        this._ignoreNextMouse = false; // skip first delta after lock
 
         this._bindEvents();
     }
@@ -42,13 +47,27 @@ export class ShipControls {
 
         document.addEventListener('mousemove', e => {
             if (this.pointerLocked) {
+                // Skip the first mouse event after lock — browsers often fire a huge spike
+                if (this._ignoreNextMouse) {
+                    this._ignoreNextMouse = false;
+                    return;
+                }
                 this.mouseDX += e.movementX;
                 this.mouseDY += e.movementY;
             }
         });
 
         document.addEventListener('pointerlockchange', () => {
+            const wasLocked = this.pointerLocked;
             this.pointerLocked = !!document.pointerLockElement;
+            // When pointer lock is newly acquired, ignore the first delta
+            if (this.pointerLocked && !wasLocked) {
+                this._ignoreNextMouse = true;
+                this.mouseDX = 0;
+                this.mouseDY = 0;
+                this.smoothDX = 0;
+                this.smoothDY = 0;
+            }
         });
     }
 
@@ -61,11 +80,19 @@ export class ShipControls {
 
         const cam = this.camera;
 
-        // --- Rotation from mouse ---
-        const yawDelta = -this.mouseDX * this.mouseSensitivity;
-        const pitchDelta = -this.mouseDY * this.mouseSensitivity;
+        // --- Rotation from mouse (smoothed + clamped) ---
+        // Clamp raw accumulated delta to prevent spikes
+        const clampedDX = Math.max(-this.maxMouseDelta, Math.min(this.maxMouseDelta, this.mouseDX));
+        const clampedDY = Math.max(-this.maxMouseDelta, Math.min(this.maxMouseDelta, this.mouseDY));
         this.mouseDX = 0;
         this.mouseDY = 0;
+
+        // Lerp toward clamped target for smooth feel
+        this.smoothDX += (clampedDX - this.smoothDX) * this.mouseSmoothing;
+        this.smoothDY += (clampedDY - this.smoothDY) * this.mouseSmoothing;
+
+        const yawDelta = -this.smoothDX * this.mouseSensitivity;
+        const pitchDelta = -this.smoothDY * this.mouseSensitivity;
 
         // Apply yaw (around world Y)
         const yawQuat = new THREE.Quaternion().setFromAxisAngle(

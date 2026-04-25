@@ -19,11 +19,95 @@ export class HUD {
         const h = this.canvas.clientHeight;
         ctx.clearRect(0, 0, w, h);
 
+        this._drawVignette(ctx, state, w, h);
+        this._drawCockpitFrame(ctx, w, h);
         this._drawMinimap(ctx, state, w, h);
         this._drawCompass(ctx, state, w, h);
         this._drawOreCounter(ctx, state, w, h);
         this._drawSpeedometer(ctx, state, w, h);
         this._drawCrosshair(ctx, w, h);
+    }
+
+    _drawVignette(ctx, state, w, h) {
+        // Speed-reactive vignette — darkens edges during movement to reduce motion sickness
+        const speed = state.speed || 0;
+        const maxSpeed = 10;
+        // Base vignette always present (subtle), intensifies with speed
+        const baseAlpha = 0.25;
+        const speedAlpha = Math.min(0.55, baseAlpha + (speed / maxSpeed) * 0.3);
+
+        const cx = w / 2;
+        const cy = h / 2;
+        const radius = Math.min(w, h) * 0.55;
+
+        const grad = ctx.createRadialGradient(cx, cy, radius * 0.4, cx, cy, radius);
+        grad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+        grad.addColorStop(0.7, `rgba(0, 0, 0, ${speedAlpha * 0.3})`);
+        grad.addColorStop(1, `rgba(0, 0, 0, ${speedAlpha})`);
+
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, h);
+    }
+
+    _drawCockpitFrame(ctx, w, h) {
+        // Static cockpit frame — gives the brain a fixed reference to reduce sickness
+        const color = 'rgba(74, 222, 128, 0.08)';
+        const edgeColor = 'rgba(74, 222, 128, 0.15)';
+        const thickness = 2;
+
+        ctx.strokeStyle = edgeColor;
+        ctx.lineWidth = thickness;
+
+        // Corner brackets (top-left, top-right, bottom-left, bottom-right)
+        const bLen = 40;
+        const margin = 60;
+
+        // Top-left
+        ctx.beginPath();
+        ctx.moveTo(margin, margin + bLen);
+        ctx.lineTo(margin, margin);
+        ctx.lineTo(margin + bLen, margin);
+        ctx.stroke();
+
+        // Top-right
+        ctx.beginPath();
+        ctx.moveTo(w - margin - bLen, margin);
+        ctx.lineTo(w - margin, margin);
+        ctx.lineTo(w - margin, margin + bLen);
+        ctx.stroke();
+
+        // Bottom-left
+        ctx.beginPath();
+        ctx.moveTo(margin, h - margin - bLen);
+        ctx.lineTo(margin, h - margin);
+        ctx.lineTo(margin + bLen, h - margin);
+        ctx.stroke();
+
+        // Bottom-right
+        ctx.beginPath();
+        ctx.moveTo(w - margin - bLen, h - margin);
+        ctx.lineTo(w - margin, h - margin);
+        ctx.lineTo(w - margin, h - margin - bLen);
+        ctx.stroke();
+
+        // Subtle top and bottom bars for horizon reference
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1;
+        ctx.setLineDash([8, 12]);
+
+        // Top bar
+        ctx.beginPath();
+        ctx.moveTo(margin + bLen + 10, margin);
+        ctx.lineTo(w - margin - bLen - 10, margin);
+        ctx.stroke();
+
+        // Bottom bar
+        ctx.beginPath();
+        ctx.moveTo(margin + bLen + 10, h - margin);
+        ctx.lineTo(w - margin - bLen - 10, h - margin);
+        ctx.stroke();
+
+        ctx.setLineDash([]);
     }
 
     _drawMinimap(ctx, state, w, h) {
