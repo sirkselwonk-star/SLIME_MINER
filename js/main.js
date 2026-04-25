@@ -12,6 +12,7 @@ import { GameState } from './game.js';
 import { WeaponSystem } from './weapons.js';
 import { EnemyManager } from './enemies.js';
 import { SoundtrackManager } from './audio.js';
+import { GalleryManager } from './gallery.js';
 
 window.THREE = THREE;
 
@@ -24,6 +25,7 @@ let particles;
 let headlight;
 let weapons, enemyManager;
 let soundtrack;
+let gallery;
 
 // Locked aspect ratio
 const TARGET_ASPECT = 16 / 9;
@@ -190,6 +192,10 @@ function buildLevel() {
               col: Math.floor((mazeData.exitWorld.x - mazeData.offsetX) / mazeData.corridorSize) }
         );
 
+        // Gallery — SLIME NFT paintings on walls
+        gallery = new GalleryManager();
+        gallery.placeArtwork(mazeData.wallMeshes, THREE);
+
         // Position camera at start
         camera.position.set(
             mazeData.startWorld.x,
@@ -218,6 +224,7 @@ function restartGame() {
     if (oreGroup) scene.remove(oreGroup);
     if (weapons) weapons.cleanup();
     if (enemyManager) enemyManager.cleanup();
+    if (gallery) gallery.cleanup();
 
     // Reset game state
     gameState = new GameState();
