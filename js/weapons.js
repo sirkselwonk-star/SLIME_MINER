@@ -6,6 +6,7 @@ export class WeaponSystem {
         this.THREE = THREE;
 
         this.projectiles = [];
+        this.onExplosion = null; // callback when explosion occurs
 
         // Cooldown timers
         this.gunCooldown = 0;
@@ -255,6 +256,8 @@ export class WeaponSystem {
         this.scene.add(light);
 
         this.effects.push({ mesh, age: 0, lifetime: 0.4, light, startIntensity: 8 });
+
+        if (this.onExplosion) this.onExplosion();
     }
 
     canFire(type) {

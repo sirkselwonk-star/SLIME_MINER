@@ -11,6 +11,7 @@ import { HUD } from './hud.js';
 import { GameState } from './game.js';
 import { WeaponSystem } from './weapons.js';
 import { EnemyManager } from './enemies.js';
+import { SoundtrackManager } from './audio.js';
 
 window.THREE = THREE;
 
@@ -22,6 +23,7 @@ let clock;
 let particles;
 let headlight;
 let weapons, enemyManager;
+let soundtrack;
 
 // Locked aspect ratio
 const TARGET_ASPECT = 16 / 9;
@@ -76,6 +78,17 @@ function init() {
     // Game state
     gameState = new GameState();
     window._gameState = gameState;
+
+    // Soundtrack
+    soundtrack = new SoundtrackManager();
+
+    // M key to toggle mute
+    document.addEventListener('keydown', e => {
+        if (e.code === 'KeyM') {
+            const muted = soundtrack.toggleMute();
+            console.log(muted ? 'Audio muted' : 'Audio unmuted');
+        }
+    });
     window._debug = { scene, camera, renderer, get mazeData() { return mazeData; }, get gridData() { return gridData; }, get colliders() { return colliders; } };
 
     // Build maze
@@ -164,6 +177,7 @@ function buildLevel() {
 
         // Weapon system
         weapons = new WeaponSystem(scene, THREE);
+        weapons.onExplosion = () => soundtrack.playExplosionSound();
 
         // Enemy spawning
         enemyManager = new EnemyManager(scene, THREE);
@@ -194,6 +208,8 @@ function startGame() {
     document.getElementById('menu-screen').style.display = 'none';
     document.getElementById('level-complete').style.display = 'none';
     controls.lockPointer(renderer.domElement);
+    // Start soundtrack on first user gesture (browser autoplay policy)
+    soundtrack.start();
 }
 
 function restartGame() {
@@ -318,11 +334,13 @@ function animate() {
             weapons.fire('gun', camera);
             weapons.startCooldown('gun');
             gameState.gunAmmo--;
+            soundtrack.playGunSound();
         }
         if (controls.firing.rocket && weapons.canFire('rocket') && gameState.rocketAmmo > 0) {
             weapons.fire('rocket', camera);
             weapons.startCooldown('rocket');
             gameState.rocketAmmo--;
+            soundtrack.playRocketSound();
         }
         controls.firing.gun = false;
         controls.firing.rocket = false;
