@@ -96,11 +96,11 @@ export class ShipControls {
         const yawDelta = -this.smoothDX * this.mouseSensitivity;
         const pitchDelta = -this.smoothDY * this.mouseSensitivity;
 
-        // Apply yaw (around world Y)
+        // Apply yaw (around camera's local Y — stays correct when upside down)
         const yawQuat = new THREE.Quaternion().setFromAxisAngle(
             new THREE.Vector3(0, 1, 0), yawDelta
         );
-        cam.quaternion.premultiply(yawQuat);
+        cam.quaternion.multiply(yawQuat);
 
         // Apply pitch (around local X)
         const pitchQuat = new THREE.Quaternion().setFromAxisAngle(
