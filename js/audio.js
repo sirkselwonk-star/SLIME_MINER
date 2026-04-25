@@ -1,5 +1,5 @@
 // audio.js — Procedural industrial soundtrack (Web Audio API)
-// 108-bar arrangement (~3:19) with swing, slides, accents, delay, acid + scream solos
+// 132-bar arrangement (~4:04) with swing, slides, accents, delay, acid + scream + bass wah solos
 
 export class SoundtrackManager {
     constructor() {
@@ -24,6 +24,7 @@ export class SoundtrackManager {
         this.barInSection = 0;
         this._prevAcidNote = 0;
         this._prevScreamNote = 0;
+        this._prevBassNote = 0;
 
         // ===== Pattern bank (velocity 0.0–1.0 per step) =====
         //                        1  .  .  .   2  .  .  .   3  .  .  .   4  .  .  .
@@ -186,9 +187,34 @@ export class SoundtrackManager {
                 [  0,  0,  0,  0,   0,  0,  0,  0,   0,  0,  0,  0, 196,  0,  0,  0],
                 [  0,  0,  0,  0,   0,  0,  0,  0,   0,  0,  0,  0,   0,  0,  0,  0],
             ],
+
+            // ——— BASS WAH (sawtooth + sub + resonant bandpass sweep) ———
+            // A minor pentatonic bass: A1=55, C2=65.4, D2=73.4, E2=82.4, G2=98, A2=110
+
+            // bassA: "Funky Statement" — syncopated, groovy, classic wah feel
+            bassA: [
+                [55,  0,  0,-82.4,  0,  0, 55,  0,   0,  0,-65.4,0, 73.4, 0, 55,  0],
+                [65.4,0,  0,  0,-82.4,0, 98,  0,-110, 0,  0,  0,  98,  0, 82.4,0],
+                [55,  0, 73.4,0,  0,  0,-82.4,0, 65.4,0,  0,  0,  55,  0,-73.4,0],
+                [-82.4,0, 0,82.4,  0,  0,-55, 0,   0,  0, 73.4,0,   0,  0,  0,  0],
+            ],
+            // bassB: "Deep Pocket" — heavy, lots of space, sub weight
+            bassB: [
+                [-55, 0,  0,  0,   0,  0,  0,  0,-73.4,0,  0,  0,   0,  0,  0,  0],
+                [-82.4,0, 0,  0,   0,  0, 55,  0,   0,  0,  0,  0,-65.4,0,  0,  0],
+                [-55, 0,  0,  0, 73.4,0,  0,  0,-82.4,0,  0,  0,   0,  0, 98,  0],
+                [-110,0,  0,  0,   0,  0,  0,  0,  55,  0,  0,  0,   0,  0,  0,  0],
+            ],
+            // bassC: "Climber" — building, more active, ascending runs
+            bassC: [
+                [55,  0,65.4,0, 73.4,0,82.4,0, -98, 0,82.4,0, 73.4,0,65.4,0],
+                [55,  0,73.4,0,-82.4,0, 98,  0,-110, 0, 98,  0, 82.4,0,73.4,0],
+                [-110,0, 98, 0, 82.4,0,-110, 0,130.8,0,-146.8,0,130.8,0,110, 0],
+                [-82.4,0,98, 0,-110, 0,82.4,0, -55, 0,   0,  0,   0,  0,  0,  0],
+            ],
         };
 
-        // ===== 108-bar arrangement (~3:19) =====
+        // ===== 132-bar arrangement (~4:04) =====
         // solo: key into soloBank, soloType: instrument selector
         // Negative notes in phrases = accented, consecutive notes = portamento slide
         this.arrangement = [
@@ -231,6 +257,13 @@ export class SoundtrackManager {
             { pat: 3, bars: 4, bass: 2, solo: 'acidE', soloType: 'acid' },     // acid cooldown
             { pat: 0, bars: 3, bass: 0, solo: 'screamE', soloType: 'scream' }, // scream fade
             { pat: 7, bars: 1, bass: 5 },
+
+            // --- Bass wah solo (24 bars) ---
+            { pat: 8, bars: 8, bass: 3, solo: 'bassA', soloType: 'bass' },     // funky x2
+            { pat: 4, bars: 4, bass: 3 },                                       // breathe
+            { pat: 8, bars: 8, bass: 3, solo: 'bassB', soloType: 'bass' },     // deep pocket x2
+            { pat: 6, bars: 3, bass: 3, solo: 'bassC', soloType: 'bass' },     // build to loop
+            { pat: 7, bars: 1, bass: 5 },                                       // fill → restart
         ];
     }
 
@@ -274,6 +307,7 @@ export class SoundtrackManager {
         this._bassFilter = null;
         this._prevAcidNote = 0;
         this._prevScreamNote = 0;
+        this._prevBassNote = 0;
     }
 
     toggleMute() {
@@ -411,14 +445,19 @@ export class SoundtrackManager {
                 } else if (section.soloType === 'scream') {
                     this._playScreamNote(time, freq, this._prevScreamNote, accented);
                     this._prevScreamNote = freq;
+                } else if (section.soloType === 'bass') {
+                    this._playBassWahNote(time, freq, this._prevBassNote, accented);
+                    this._prevBassNote = freq;
                 }
             } else {
                 if (section.soloType === 'acid') this._prevAcidNote = 0;
-                else this._prevScreamNote = 0;
+                else if (section.soloType === 'scream') this._prevScreamNote = 0;
+                else if (section.soloType === 'bass') this._prevBassNote = 0;
             }
         } else {
             this._prevAcidNote = 0;
             this._prevScreamNote = 0;
+            this._prevBassNote = 0;
         }
     }
 
@@ -660,6 +699,82 @@ export class SoundtrackManager {
         osc.stop(time + 0.32);
     }
 
+    _playBassWahNote(time, freq, prevFreq, accented) {
+        // Fat bass with auto-wah: sawtooth + sub octave → drive → bandpass sweep
+        const ctx = this.ctx;
+        const sliding = prevFreq > 0;
+
+        // Main voice: sawtooth for harmonics the wah can bite into
+        const osc = ctx.createOscillator();
+        osc.type = 'sawtooth';
+        if (sliding) {
+            osc.frequency.setValueAtTime(prevFreq, time);
+            osc.frequency.exponentialRampToValueAtTime(freq, time + 0.06);
+        } else {
+            osc.frequency.setValueAtTime(freq, time);
+        }
+
+        // Sub octave for weight
+        const sub = ctx.createOscillator();
+        sub.type = 'sine';
+        if (sliding) {
+            sub.frequency.setValueAtTime(prevFreq / 2, time);
+            sub.frequency.exponentialRampToValueAtTime(freq / 2, time + 0.06);
+        } else {
+            sub.frequency.setValueAtTime(freq / 2, time);
+        }
+
+        const subGain = ctx.createGain();
+        const subVol = accented ? 0.18 : 0.12;
+        subGain.gain.setValueAtTime(subVol, time);
+        subGain.gain.exponentialRampToValueAtTime(0.001, time + 0.28);
+
+        // Pre-wah overdrive for grit
+        const drive = ctx.createWaveShaper();
+        drive.curve = this._makeDistortionCurve(12);
+
+        // WAH FILTER: resonant bandpass that sweeps open then closed
+        const wah = ctx.createBiquadFilter();
+        wah.type = 'bandpass';
+        wah.Q.value = accented ? 8 : 5;
+        const wahLow = freq * 1.5;
+        const wahPeak = accented ? freq * 14 : freq * 8;
+        wah.frequency.setValueAtTime(wahLow, time);
+        wah.frequency.exponentialRampToValueAtTime(wahPeak, time + 0.04);
+        wah.frequency.exponentialRampToValueAtTime(wahLow, time + 0.2);
+
+        // LFO wobble for extra wah movement on sustained notes
+        const wahLFO = ctx.createOscillator();
+        wahLFO.type = 'sine';
+        wahLFO.frequency.value = accented ? 4.5 : 2.5;
+        const wahLFODepth = ctx.createGain();
+        wahLFODepth.gain.value = freq * 2;
+        wahLFO.connect(wahLFODepth);
+        wahLFODepth.connect(wah.frequency);
+
+        // Output gain
+        const vol = accented ? 0.26 : 0.18;
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(vol, time);
+        gain.gain.setTargetAtTime(vol * 0.6, time + 0.02, 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.3);
+
+        // Routing: osc → drive → wah → gain → soloBus
+        osc.connect(drive);
+        drive.connect(wah);
+        sub.connect(subGain);
+        subGain.connect(wah);
+        wah.connect(gain);
+        gain.connect(this.soloBus);
+
+        wahLFO.start(time);
+        wahLFO.stop(time + 0.3);
+        osc.start(time);
+        osc.stop(time + 0.3);
+        sub.start(time);
+        sub.stop(time + 0.3);
+    }
+
     // ========== Continuous layers ==========
 
     _startBass() {
@@ -690,14 +805,17 @@ export class SoundtrackManager {
 
     _updateBass(step, time, bassProgIdx) {
         if (!this._bassOsc) return;
+        // Duck continuous bass when bass wah solo is playing
+        const section = this.arrangement[this.arrIndex];
+        const ducked = section.soloType === 'bass';
         const prog = this.bassProgs[bassProgIdx];
         for (const [s, freq] of prog) {
             if (step === s) {
                 this._bassOsc.frequency.setValueAtTime(freq, time);
-                this._bassFilter.frequency.setValueAtTime(350, time);
-                this._bassFilter.frequency.exponentialRampToValueAtTime(180, time + 0.1);
-                this._bassGain.gain.setValueAtTime(0.28, time);
-                this._bassGain.gain.setTargetAtTime(0.16, time + 0.02, 0.08);
+                this._bassFilter.frequency.setValueAtTime(ducked ? 100 : 350, time);
+                this._bassFilter.frequency.exponentialRampToValueAtTime(ducked ? 60 : 180, time + 0.1);
+                this._bassGain.gain.setValueAtTime(ducked ? 0.06 : 0.28, time);
+                this._bassGain.gain.setTargetAtTime(ducked ? 0.03 : 0.16, time + 0.02, 0.08);
             }
         }
     }
