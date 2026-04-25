@@ -20,12 +20,15 @@ let clock;
 let particles;
 let headlight;
 
+// Locked aspect ratio
+const TARGET_ASPECT = 16 / 9;
+const TARGET_FOV = 65;
+
 function init() {
     clock = new THREE.Clock();
 
-    // Renderer
+    // Renderer — locked 16:9 aspect ratio
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-    renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = false;
     renderer.toneMapping = THREE.ReinhardToneMapping;
@@ -37,8 +40,11 @@ function init() {
     scene.background = new THREE.Color(0x020208);
     scene.fog = new THREE.FogExp2(0x020208, 0.025);
 
-    // Camera
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 200);
+    // Camera — fixed FOV and aspect
+    camera = new THREE.PerspectiveCamera(TARGET_FOV, TARGET_ASPECT, 0.1, 200);
+
+    // Apply initial letterboxed size
+    applyViewportSize();
 
     // Ambient light
     const ambient = new THREE.AmbientLight(0x222244, 0.8);
@@ -345,11 +351,44 @@ function animate() {
     renderer.render(scene, camera);
 }
 
+function applyViewportSize() {
+    const winW = window.innerWidth;
+    const winH = window.innerHeight;
+    const winAspect = winW / winH;
+
+    let vpW, vpH;
+    if (winAspect > TARGET_ASPECT) {
+        // Window is wider than 16:9 — pillarbox (black bars on sides)
+        vpH = winH;
+        vpW = Math.floor(winH * TARGET_ASPECT);
+    } else {
+        // Window is taller than 16:9 — letterbox (black bars top/bottom)
+        vpW = winW;
+        vpH = Math.floor(winW / TARGET_ASPECT);
+    }
+
+    const offsetX = Math.floor((winW - vpW) / 2);
+    const offsetY = Math.floor((winH - vpH) / 2);
+
+    // Size and center the renderer canvas
+    renderer.setSize(vpW, vpH);
+    renderer.domElement.style.position = 'absolute';
+    renderer.domElement.style.left = offsetX + 'px';
+    renderer.domElement.style.top = offsetY + 'px';
+
+    // Match HUD canvas to the same viewport
+    const hudCanvas = document.getElementById('hud-canvas');
+    hudCanvas.style.position = 'fixed';
+    hudCanvas.style.left = offsetX + 'px';
+    hudCanvas.style.top = offsetY + 'px';
+    hudCanvas.style.width = vpW + 'px';
+    hudCanvas.style.height = vpH + 'px';
+
+    if (hud) hud.resize();
+}
+
 function onResize() {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    hud.resize();
+    applyViewportSize();
 }
 
 // Start when Three.js is loaded
