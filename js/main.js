@@ -9,6 +9,8 @@ import {
 import { ShipControls } from './controls.js';
 import { HUD } from './hud.js';
 import { GameState } from './game.js';
+import { WeaponSystem } from './weapons.js';
+import { EnemyManager } from './enemies.js';
 
 window.THREE = THREE;
 
@@ -19,6 +21,7 @@ let gridData;
 let clock;
 let particles;
 let headlight;
+let weapons, enemyManager;
 
 // Locked aspect ratio
 const TARGET_ASPECT = 16 / 9;
@@ -145,10 +148,11 @@ function buildLevel() {
         );
         scene.add(mazeData.group);
 
-        // Get collision boxes
+        // Get collision boxes (with wall mesh refs for destruction)
         colliders = getWallColliders(
             gridData.grid, gridData.rows, gridData.cols,
-            mazeData.corridorSize, mazeData.offsetX, mazeData.offsetZ
+            mazeData.corridorSize, mazeData.offsetX, mazeData.offsetZ,
+            mazeData.wallMeshes
         );
 
         // Spawn ore
@@ -157,6 +161,20 @@ function buildLevel() {
             mazeData.corridorSize, mazeData.offsetX, mazeData.offsetZ, THREE
         );
         scene.add(oreGroup);
+
+        // Weapon system
+        weapons = new WeaponSystem(scene, THREE);
+
+        // Enemy spawning
+        enemyManager = new EnemyManager(scene, THREE);
+        enemyManager.spawnEnemies(
+            gridData.grid, gridData.rows, gridData.cols,
+            mazeData.corridorSize, mazeData.offsetX, mazeData.offsetZ,
+            { row: Math.floor((mazeData.startWorld.z - mazeData.offsetZ) / mazeData.corridorSize),
+              col: Math.floor((mazeData.startWorld.x - mazeData.offsetX) / mazeData.corridorSize) },
+            { row: Math.floor((mazeData.exitWorld.z - mazeData.offsetZ) / mazeData.corridorSize),
+              col: Math.floor((mazeData.exitWorld.x - mazeData.offsetX) / mazeData.corridorSize) }
+        );
 
         // Position camera at start
         camera.position.set(
@@ -182,6 +200,8 @@ function restartGame() {
     // Remove old maze and ore groups from scene
     if (mazeData && mazeData.group) scene.remove(mazeData.group);
     if (oreGroup) scene.remove(oreGroup);
+    if (weapons) weapons.cleanup();
+    if (enemyManager) enemyManager.cleanup();
 
     // Reset game state
     gameState = new GameState();
@@ -195,6 +215,9 @@ function restartGame() {
     menu.querySelector('h1').textContent = 'SLIME MINER';
     menu.querySelector('.subtitle').textContent = 'DESCENT INTO THE SLIME';
     menu.querySelector('.prompt').textContent = '[ CLICK TO START ]';
+
+    // Reset level-complete heading (may have been changed to DESTROYED)
+    document.getElementById('level-complete').querySelector('h2').textContent = 'LEVEL COMPLETE';
 
     // Start playing
     startGame();
@@ -289,6 +312,50 @@ function animate() {
     if (gameState.state === 'PLAYING') {
         controls.update(dt, colliders);
 
+        // Handle firing — gun (left click / held), rocket (right click)
+        if (controls.gunHeld) controls.firing.gun = true;
+        if (controls.firing.gun && weapons.canFire('gun') && gameState.gunAmmo > 0) {
+            weapons.fire('gun', camera);
+            weapons.startCooldown('gun');
+            gameState.gunAmmo--;
+        }
+        if (controls.firing.rocket && weapons.canFire('rocket') && gameState.rocketAmmo > 0) {
+            weapons.fire('rocket', camera);
+            weapons.startCooldown('rocket');
+            gameState.rocketAmmo--;
+        }
+        controls.firing.gun = false;
+        controls.firing.rocket = false;
+
+        // Update weapons
+        const enemyList = enemyManager ? enemyManager.enemies : [];
+        if (weapons) weapons.update(dt, colliders, enemyList, gridData?.grid);
+
+        // Count kills
+        if (enemyManager) {
+            let killed = 0;
+            for (const e of enemyManager.enemies) {
+                if (!e.alive || e.dying) killed++;
+            }
+            gameState.enemiesKilled = killed;
+        }
+
+        // Update enemies + apply contact damage
+        if (enemyManager && mazeData) {
+            const contactDmg = enemyManager.update(
+                dt, camera.position, colliders,
+                gridData.grid, mazeData.corridorSize,
+                mazeData.offsetX, mazeData.offsetZ
+            );
+            if (contactDmg > 0) {
+                gameState.playerHP = Math.max(0, gameState.playerHP - contactDmg);
+                gameState.damageFlash = 1;
+            }
+        }
+
+        // Fade damage flash
+        if (gameState.damageFlash > 0) gameState.damageFlash = Math.max(0, gameState.damageFlash - dt * 3);
+
         // Update game logic
         gameState.update(camera.position, mazeData?.exitWorld, dt);
 
@@ -319,6 +386,16 @@ function animate() {
                 scoreEl.textContent = `${gameState.oreCollected} / ${gameState.oreTotal}`;
             }
         }
+
+        // Check player death
+        if (gameState.playerHP <= 0 && gameState.state === 'PLAYING') {
+            gameState.state = 'LEVEL_COMPLETE';
+            document.getElementById('level-complete').style.display = 'flex';
+            document.getElementById('level-complete').querySelector('h2').textContent = 'DESTROYED';
+            document.exitPointerLock();
+            const scoreEl = document.getElementById('final-score');
+            if (scoreEl) scoreEl.textContent = `${gameState.oreCollected} / ${gameState.oreTotal}`;
+        }
     }
 
     // Get heading for compass
@@ -326,12 +403,12 @@ function animate() {
     const heading = Math.atan2(forward.x, forward.z);
 
     // Draw HUD
-    const gridPos = getPlayerGridPos();
+    const gridPos2 = getPlayerGridPos();
     hud.draw({
         grid: gridData?.grid,
         rows: gridData?.rows,
         cols: gridData?.cols,
-        playerGridPos: gridPos,
+        playerGridPos: gridPos2,
         startPos: mazeData ? {
             row: Math.floor((mazeData.startWorld.z - mazeData.offsetZ) / mazeData.corridorSize),
             col: Math.floor((mazeData.startWorld.x - mazeData.offsetX) / mazeData.corridorSize)
@@ -345,7 +422,14 @@ function animate() {
         oreCollected: gameState.oreCollected,
         oreTotal: gameState.oreTotal,
         speed: controls.getSpeed(),
-        exitUnlocked: gameState.exitUnlocked
+        exitUnlocked: gameState.exitUnlocked,
+        // Combat HUD data
+        playerHP: gameState.playerHP,
+        playerMaxHP: gameState.playerMaxHP,
+        gunAmmo: gameState.gunAmmo,
+        rocketAmmo: gameState.rocketAmmo,
+        damageFlash: gameState.damageFlash,
+        enemyPositions: enemyManager ? enemyManager.getEnemyPositions() : []
     });
 
     renderer.render(scene, camera);

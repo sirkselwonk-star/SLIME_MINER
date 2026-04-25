@@ -28,6 +28,10 @@ export class ShipControls {
         this.pointerLocked = false;
         this._ignoreNextMouse = false; // skip first delta after lock
 
+        // Firing state — consumed by game loop each frame
+        this.firing = { gun: false, rocket: false };
+        this.gunHeld = false; // true while left mouse held
+
         this._bindEvents();
     }
 
@@ -69,6 +73,18 @@ export class ShipControls {
                 this.smoothDY = 0;
             }
         });
+
+        // Mouse buttons — firing
+        document.addEventListener('mousedown', e => {
+            if (!this.pointerLocked) return;
+            if (e.button === 0) { this.firing.gun = true; this.gunHeld = true; }
+            if (e.button === 2) this.firing.rocket = true;
+        });
+        document.addEventListener('mouseup', e => {
+            if (e.button === 0) this.gunHeld = false;
+        });
+        // Block right-click context menu
+        document.addEventListener('contextmenu', e => e.preventDefault());
     }
 
     lockPointer(element) {

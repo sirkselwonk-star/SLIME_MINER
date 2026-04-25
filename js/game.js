@@ -9,6 +9,14 @@ export class GameState {
         this.visitedCells = new Set();
         this.oreRequiredPct = 0.5; // need 50% ore to unlock exit
         this.exitUnlocked = false;
+
+        // Combat state
+        this.playerHP = 100;
+        this.playerMaxHP = 100;
+        this.gunAmmo = 200;
+        this.rocketAmmo = 10;
+        this.enemiesKilled = 0;
+        this.damageFlash = 0; // 0-1, fades out
     }
 
     spawnOre(grid, rows, cols, corridorSize, offsetX, offsetZ, THREE) {

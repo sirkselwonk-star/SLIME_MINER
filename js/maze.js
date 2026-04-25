@@ -178,6 +178,7 @@ function buildMazeGeometry(grid, rows, cols, startPos, exitPos, THREE) {
     });
 
     const mazeGroup = new THREE.Group();
+    const wallMeshes = {};
     const lights = [];
 
     // Offset so maze is centered at origin
@@ -218,6 +219,7 @@ function buildMazeGeometry(grid, rows, cols, startPos, exitPos, THREE) {
                 );
                 wall.position.set(x + corridorSize / 2, wallHeight / 2, z);
                 mazeGroup.add(wall);
+                wallMeshes[`${r},${c},N`] = wall;
             }
             if (cell.walls.S) {
                 const wall = new THREE.Mesh(
@@ -226,6 +228,7 @@ function buildMazeGeometry(grid, rows, cols, startPos, exitPos, THREE) {
                 );
                 wall.position.set(x + corridorSize / 2, wallHeight / 2, z + corridorSize);
                 mazeGroup.add(wall);
+                wallMeshes[`${r},${c},S`] = wall;
             }
             if (cell.walls.W) {
                 const wall = new THREE.Mesh(
@@ -234,6 +237,7 @@ function buildMazeGeometry(grid, rows, cols, startPos, exitPos, THREE) {
                 );
                 wall.position.set(x, wallHeight / 2, z + corridorSize / 2);
                 mazeGroup.add(wall);
+                wallMeshes[`${r},${c},W`] = wall;
             }
             if (cell.walls.E) {
                 const wall = new THREE.Mesh(
@@ -242,6 +246,7 @@ function buildMazeGeometry(grid, rows, cols, startPos, exitPos, THREE) {
                 );
                 wall.position.set(x + corridorSize, wallHeight / 2, z + corridorSize / 2);
                 mazeGroup.add(wall);
+                wallMeshes[`${r},${c},E`] = wall;
             }
         }
     }
@@ -297,6 +302,7 @@ function buildMazeGeometry(grid, rows, cols, startPos, exitPos, THREE) {
 
     return {
         group: mazeGroup,
+        wallMeshes,
         corridorSize,
         offsetX,
         offsetZ,
@@ -309,7 +315,7 @@ function buildMazeGeometry(grid, rows, cols, startPos, exitPos, THREE) {
 
 // --- Get wall boxes for collision ---
 
-function getWallColliders(grid, rows, cols, corridorSize, offsetX, offsetZ) {
+function getWallColliders(grid, rows, cols, corridorSize, offsetX, offsetZ, wallMeshes) {
     const colliders = [];
     const wallThickness = 0.3;
     const wallHeight = 3;
@@ -326,39 +332,38 @@ function getWallColliders(grid, rows, cols, corridorSize, offsetX, offsetZ) {
                 colliders.push({
                     minX: x, maxX: x + corridorSize,
                     minY: 0, maxY: wallHeight,
-                    minZ: z - wallThickness / 2, maxZ: z + wallThickness / 2
+                    minZ: z - wallThickness / 2, maxZ: z + wallThickness / 2,
+                    mesh: wallMeshes ? wallMeshes[`${r},${c},N`] : null,
+                    gridRef: { row: r, col: c, dir: 'N' }
                 });
             }
             if (cell.walls.S) {
                 colliders.push({
                     minX: x, maxX: x + corridorSize,
                     minY: 0, maxY: wallHeight,
-                    minZ: z + corridorSize - wallThickness / 2, maxZ: z + corridorSize + wallThickness / 2
+                    minZ: z + corridorSize - wallThickness / 2, maxZ: z + corridorSize + wallThickness / 2,
+                    mesh: wallMeshes ? wallMeshes[`${r},${c},S`] : null,
+                    gridRef: { row: r, col: c, dir: 'S' }
                 });
             }
             if (cell.walls.W) {
                 colliders.push({
                     minX: x - wallThickness / 2, maxX: x + wallThickness / 2,
                     minY: 0, maxY: wallHeight,
-                    minZ: z, maxZ: z + corridorSize
+                    minZ: z, maxZ: z + corridorSize,
+                    mesh: wallMeshes ? wallMeshes[`${r},${c},W`] : null,
+                    gridRef: { row: r, col: c, dir: 'W' }
                 });
             }
             if (cell.walls.E) {
                 colliders.push({
                     minX: x + corridorSize - wallThickness / 2, maxX: x + corridorSize + wallThickness / 2,
                     minY: 0, maxY: wallHeight,
-                    minZ: z, maxZ: z + corridorSize
+                    minZ: z, maxZ: z + corridorSize,
+                    mesh: wallMeshes ? wallMeshes[`${r},${c},E`] : null,
+                    gridRef: { row: r, col: c, dir: 'E' }
                 });
             }
-        }
-    }
-
-    // Also add boundary colliders for outside cells adjacent to inside cells
-    for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-            if (!grid[r][c].inside) continue;
-            // Check all 4 neighbors; if neighbor is outside or out of bounds, that wall stays
-            // (already handled by default walls being true for boundary cells)
         }
     }
 

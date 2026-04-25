@@ -19,6 +19,7 @@ export class HUD {
         const h = this.canvas.clientHeight;
         ctx.clearRect(0, 0, w, h);
 
+        this._drawDamageFlash(ctx, state, w, h);
         this._drawVignette(ctx, state, w, h);
         this._drawCockpitFrame(ctx, w, h);
         this._drawMinimap(ctx, state, w, h);
@@ -26,6 +27,8 @@ export class HUD {
         this._drawOreCounter(ctx, state, w, h);
         this._drawSpeedometer(ctx, state, w, h);
         this._drawCrosshair(ctx, w, h);
+        this._drawHealthBar(ctx, state, w, h);
+        this._drawAmmoCounter(ctx, state, w, h);
     }
 
     _drawVignette(ctx, state, w, h) {
@@ -203,6 +206,25 @@ export class HUD {
             ctx.fill();
         }
 
+        // Enemy positions (red dots, only in visited cells)
+        if (state.enemyPositions) {
+            for (const ep of state.enemyPositions) {
+                const key = `${ep.row},${ep.col}`;
+                if (!visitedCells || !visitedCells.has(key)) continue;
+                ctx.fillStyle = '#ff2255';
+                ctx.shadowColor = '#ff2255';
+                ctx.shadowBlur = 4;
+                ctx.beginPath();
+                ctx.arc(
+                    mapX + ep.col * cellW + cellW / 2,
+                    mapY + ep.row * cellH + cellH / 2,
+                    Math.max(1.5, cellW * 0.35), 0, Math.PI * 2
+                );
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        }
+
         // Player position
         if (playerGridPos) {
             ctx.fillStyle = '#4ade80';
@@ -321,5 +343,65 @@ export class HUD {
         ctx.beginPath();
         ctx.arc(cx, cy, 1.5, 0, Math.PI * 2);
         ctx.stroke();
+    }
+
+    _drawHealthBar(ctx, state, w, h) {
+        const hp = state.playerHP;
+        const maxHP = state.playerMaxHP;
+        if (hp === undefined || maxHP === undefined) return;
+
+        const barW = 160;
+        const barH = 10;
+        const barX = 15;
+        const barY = 20;
+        const pct = Math.max(0, hp / maxHP);
+
+        // Label
+        ctx.fillStyle = pct > 0.3 ? '#4ade80' : '#f87171';
+        ctx.font = 'bold 12px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`HP: ${Math.ceil(hp)}`, barX, barY - 5);
+
+        // Bar background
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+        ctx.fillRect(barX, barY, barW, barH);
+
+        // Bar fill — green to red
+        const r = Math.round(255 * (1 - pct));
+        const g = Math.round(200 * pct);
+        ctx.fillStyle = `rgb(${r}, ${g}, 60)`;
+        ctx.fillRect(barX, barY, barW * pct, barH);
+
+        // Border
+        ctx.strokeStyle = 'rgba(74, 222, 128, 0.4)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(barX, barY, barW, barH);
+    }
+
+    _drawAmmoCounter(ctx, state, w, h) {
+        const { gunAmmo, rocketAmmo } = state;
+        if (gunAmmo === undefined) return;
+
+        const x = 15;
+        const y = h - 210; // above minimap
+
+        ctx.font = '11px monospace';
+        ctx.textAlign = 'left';
+
+        // Gun ammo
+        ctx.fillStyle = '#4ade80';
+        ctx.fillText(`GUN: ${gunAmmo}`, x, y);
+
+        // Rocket ammo
+        ctx.fillStyle = '#fb923c';
+        ctx.fillText(`RKT: ${rocketAmmo}`, x, y + 16);
+    }
+
+    _drawDamageFlash(ctx, state, w, h) {
+        const flash = state.damageFlash;
+        if (!flash || flash <= 0) return;
+
+        ctx.fillStyle = `rgba(255, 30, 30, ${flash * 0.3})`;
+        ctx.fillRect(0, 0, w, h);
     }
 }
