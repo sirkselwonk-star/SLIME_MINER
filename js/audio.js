@@ -212,6 +212,23 @@ export class SoundtrackManager {
                 [-110,0, 98, 0, 82.4,0,-110, 0,130.8,0,-146.8,0,130.8,0,110, 0],
                 [-82.4,0,98, 0,-110, 0,82.4,0, -55, 0,   0,  0,   0,  0,  0,  0],
             ],
+
+            // ——— BASS WAH ACCOMPANIMENT (sparser, textural) ———
+
+            // bassGrooveA: "Wah Accent" — sparse offbeat hits adding color
+            bassGrooveA: [
+                [0,  0,  0,  0,-82.4,0,  0,  0,   0,  0,  0,  0,  55,  0,  0,  0],
+                [0,  0, 73.4,0,  0,  0,  0,  0,-65.4,0,  0,  0,   0,  0,  0,  0],
+                [0,  0,  0,  0,-82.4,0,  0,  0,   0,  0, 55,  0,   0,  0, 73.4,0],
+                [0,  0,  0,  0,  0,  0,-65.4,0,   0,  0,  0,  0,   0,  0,  0,  0],
+            ],
+            // bassGrooveB: "Wah Pulse" — rhythmic offbeat pump
+            bassGrooveB: [
+                [0,  0, 55,  0,  0,  0,-55, 0,   0,  0, 55,  0,   0,  0,-82.4,0],
+                [0,  0, 73.4,0,  0,  0,-65.4,0,  0,  0, 73.4,0,   0,  0,-55, 0],
+                [0,  0, 82.4,0,  0,  0,-82.4,0,  0,  0, 65.4,0,   0,  0,-73.4,0],
+                [0,  0, 55,  0,  0,  0,-82.4,0,  0,  0,  0,  0,   0,  0,  0,  0],
+            ],
         };
 
         // ===== 132-bar arrangement (~4:04) =====
@@ -227,13 +244,13 @@ export class SoundtrackManager {
             { pat: 8, bars: 8, bass: 0, solo: 'acidA', soloType: 'acid' },   // opening x2
             { pat: 3, bars: 4, bass: 1 },                                     // breathe
             { pat: 6, bars: 8, bass: 2, solo: 'acidB', soloType: 'acid' },   // climbing x2
-            { pat: 2, bars: 4, bass: 4 },                                     // breathe
+            { pat: 2, bars: 4, bass: 4, solo: 'bassGrooveA', soloType: 'bass' }, // breathe + wah
             { pat: 6, bars: 4, bass: 4, solo: 'acidC', soloType: 'acid' },   // fast runs
             { pat: 6, bars: 3, bass: 7, solo: 'acidD', soloType: 'acid' },   // peak
             { pat: 7, bars: 1, bass: 5 },                                     // fill
 
             // --- Groove (8 bars) ---
-            { pat: 2, bars: 4, bass: 1 },
+            { pat: 2, bars: 4, bass: 1, solo: 'bassGrooveB', soloType: 'bass' }, // wah pulse
             { pat: 3, bars: 3, bass: 2 },
             { pat: 7, bars: 1, bass: 5 },
 
@@ -245,13 +262,13 @@ export class SoundtrackManager {
             { pat: 6, bars: 8, bass: 4, solo: 'screamA', soloType: 'scream' }, // attacks x2
             { pat: 4, bars: 4, bass: 3 },                                       // breathe
             { pat: 8, bars: 8, bass: 6, solo: 'screamB', soloType: 'scream' }, // wail x2
-            { pat: 5, bars: 4, bass: 7 },                                       // breathe
+            { pat: 5, bars: 4, bass: 7, solo: 'bassGrooveA', soloType: 'bass' },  // breathe + wah
             { pat: 6, bars: 4, bass: 7, solo: 'screamC', soloType: 'scream' }, // rapid fire
             { pat: 6, bars: 3, bass: 2, solo: 'screamD', soloType: 'scream' }, // chaos
             { pat: 7, bars: 1, bass: 5 },                                       // fill
 
             // --- Climax & resolution (20 bars) ---
-            { pat: 2, bars: 4, bass: 1 },
+            { pat: 2, bars: 4, bass: 1, solo: 'bassGrooveB', soloType: 'bass' }, // wah returns
             { pat: 6, bars: 4, bass: 4 },
             { pat: 3, bars: 4, bass: 2 },
             { pat: 3, bars: 4, bass: 2, solo: 'acidE', soloType: 'acid' },     // acid cooldown
