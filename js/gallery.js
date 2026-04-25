@@ -1004,9 +1004,6 @@ const SLIME_URLS = [
 ];
 
 
-// Max texture dimension — IPFS originals are downscaled to this on load
-const TEX_MAX = 256;
-
 // Module-level caches — persist across level restarts, loaded once per session
 const artCache = new Map();   // url → THREE.CanvasTexture
 const plateCache = new Map(); // label → THREE.CanvasTexture
@@ -1124,30 +1121,19 @@ export class GalleryManager {
                 artMat.color.set(0xffffff);
                 artMat.needsUpdate = true;
             } else {
-                const img = new Image();
-                img.crossOrigin = 'anonymous';
-                img.onload = () => {
-                    if (this._disposed) return;
-                    let w = img.width, h = img.height;
-                    if (w > TEX_MAX || h > TEX_MAX) {
-                        const scale = TEX_MAX / Math.max(w, h);
-                        w = Math.round(w * scale);
-                        h = Math.round(h * scale);
-                    }
-                    const c = document.createElement('canvas');
-                    c.width = w;
-                    c.height = h;
-                    c.getContext('2d').drawImage(img, 0, 0, w, h);
-                    const texture = new THREE.CanvasTexture(c);
-                    texture.colorSpace = THREE.SRGBColorSpace;
-                    texture.needsUpdate = true;
-                    artCache.set(url, texture);
-                    artMat.map = texture;
-                    artMat.color.set(0xffffff);
-                    artMat.needsUpdate = true;
-                };
-                img.onerror = () => { /* keep placeholder */ };
-                img.src = url;
+                new THREE.TextureLoader().load(
+                    url,
+                    (texture) => {
+                        if (this._disposed) return;
+                        texture.colorSpace = THREE.SRGBColorSpace;
+                        artCache.set(url, texture);
+                        artMat.map = texture;
+                        artMat.color.set(0xffffff);
+                        artMat.needsUpdate = true;
+                    },
+                    undefined,
+                    () => { /* keep placeholder on error */ }
+                );
             }
         }
     }
