@@ -131,7 +131,6 @@ const EFFECTS = [
 
 function buildFragmentShader(fragBody) {
     return `
-precision mediump float;
 varying vec2 vUv;
 uniform float time;
 ${NOISE_GLSL}
