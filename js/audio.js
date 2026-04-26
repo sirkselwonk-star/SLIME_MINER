@@ -405,7 +405,7 @@ export class SoundtrackManager {
     // ========== Scheduler with swing ==========
 
     _scheduler() {
-        while (this.nextStepTime < this.ctx.currentTime + 0.1) {
+        while (this.nextStepTime < this.ctx.currentTime + 0.3) {
             this._scheduleStep(this.stepIndex, this.nextStepTime);
 
             const pairDur = this.stepLength * 2;

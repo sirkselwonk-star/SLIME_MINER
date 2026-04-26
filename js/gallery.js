@@ -1,1056 +1,15 @@
-// gallery.js — SLIME.GALLERY NFT artwork on maze walls
+// gallery.js — SLIME.GALLERY NFT artwork on maze walls (sprite atlas version)
 
-const SLIME_URLS = [
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%231.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2310.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%23100.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2311.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2312.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2313.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2314.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2315.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2316.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2317.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2318.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2319.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%232.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2320.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2321.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2322.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2323.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2324.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2325.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2326.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2327.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2328.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2329.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%233.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2330.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2331.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2332.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2333.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2334.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2335.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2336.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2337.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2338.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2339.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%234.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2340.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2341.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2342.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2343.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2344.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2345.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2346.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2347.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2348.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2349.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%235.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2350.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2351.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2352.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2353.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2354.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2355.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2356.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2357.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2358.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2359.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%236.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2360.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2361.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2362.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2363.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2364.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2365.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2366.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2367.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2368.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2369.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%237.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2370.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2371.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2372.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2373.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2374.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2375.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2376.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2377.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2378.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2379.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%238.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2380.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2381.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2382.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2383.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2384.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2385.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2386.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2387.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2388.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2389.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%239.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2390.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2391.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2392.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2393.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2394.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2395.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2396.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2397.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2398.png',
-    'https://ipfs.io/ipfs/bafybeib227mlzhkcjbveadbmm3mi3hhdmtiporb6vh5sahqqpdc7pu5m6a/SLIME%2399.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23301.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23302.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23303.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23304.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23305.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23306.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23307.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23308.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23309.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23310.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23311.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23312.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23313.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23314.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23315.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23316.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23317.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23318.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23319.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23320.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23321.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23322.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23323.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23324.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23325.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23326.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23327.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23328.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23329.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23330.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23331.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23332.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23333.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23334.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23335.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23336.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23337.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23338.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23339.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23340.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23341.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23342.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23343.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23344.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23345.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23346.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23347.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23348.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23349.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23350.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23351.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23352.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23353.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23354.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23355.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23356.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23357.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23358.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23359.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23360.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23361.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23362.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23363.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23364.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23365.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23366.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23367.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23368.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23369.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23370.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23371.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23372.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23373.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23374.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23375.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23376.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23377.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23378.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23379.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23380.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23381.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23382.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23383.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23384.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23385.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23386.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23387.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23388.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23389.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23390.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23391.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23392.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23393.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23394.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23395.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23396.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23397.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23398.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23399.png',
-    'https://ipfs.io/ipfs/bafybeibxzyl2rpazl22luxhag5el2txta3o6ii2ukgecgnrrbpphgpe6gm/SLIME%23400.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23604.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23605.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23606.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23607.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23608.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23609.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23610.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23611.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23612.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23613.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23614.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23615.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23616.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23617.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23618.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23619.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23620.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23621.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23622.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23623.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23624.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23625.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23626.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23627.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23628.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23629.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23630.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23631.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23632.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23633.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23634.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23635.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23636.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23637.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23638.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23639.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23640.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23641.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23642.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23643.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23644.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23645.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23646.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23647.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23648.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23649.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23650.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23651.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23652.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23653.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23654.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23655.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23656.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23657.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23658.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23659.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23660.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23661.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23662.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23663.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23664.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23665.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23666.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23667.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23668.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23669.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23670.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23671.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23672.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23673.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23674.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23675.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23676.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23677.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23678.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23679.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23680.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23681.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23682.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23683.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23684.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23685.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23686.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23687.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23688.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23689.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23690.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23691.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23692.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23693.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23694.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23695.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23696.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23697.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23698.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23699.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23700.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23701.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23702.png',
-    'https://ipfs.io/ipfs/bafybeicahgfxahnehkklkobhaz3lukge33o7w2uoiqtqug5fbuqj2jywqa/SLIME%23703.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23804.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23805.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23806.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23807.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23808.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23809.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23810.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23811.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23812.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23813.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23814.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23815.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23816.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23817.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23818.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23819.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23820.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23821.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23822.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23823.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23824.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23825.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23826.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23827.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23828.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23829.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23830.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23831.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23832.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23833.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23834.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23835.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23836.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23837.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23838.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23839.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23840.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23841.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23842.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23843.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23844.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23845.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23846.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23847.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23848.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23849.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23850.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23851.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23852.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23853.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23854.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23855.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23856.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23857.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23858.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23859.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23860.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23861.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23862.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23863.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23864.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23865.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23866.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23867.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23868.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23869.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23870.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23871.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23872.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23873.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23874.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23875.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23876.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23877.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23878.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23879.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23880.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23881.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23882.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23883.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23884.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23885.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23886.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23887.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23888.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23889.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23890.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23891.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23892.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23893.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23894.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23895.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23896.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23897.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23898.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23899.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23900.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23901.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23902.png',
-    'https://ipfs.io/ipfs/bafybeicn5z7om2d5m3it6tjv3gtg4wcplescejvohyc2y3t45rdqa67jku/SLIME%23903.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23401.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23402.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23403.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23404.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23405.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23406.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23407.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23408.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23409.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23410.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23411.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23412.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23413.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23414.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23415.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23416.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23417.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23418.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23419.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23420.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23421.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23422.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23423.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23424.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23425.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23426.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23427.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23428.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23429.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23430.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23431.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23432.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23433.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23434.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23435.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23436.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23437.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23438.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23439.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23440.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23441.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23442.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23443.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23444.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23445.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23446.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23447.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23448.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23449.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23450.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23451.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23452.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23453.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23454.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23455.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23456.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23457.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23458.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23459.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23460.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23461.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23462.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23463.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23464.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23465.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23466.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23467.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23468.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23469.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23470.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23471.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23472.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23473.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23474.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23475.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23476.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23477.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23478.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23479.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23480.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23481.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23482.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23483.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23484.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23485.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23486.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23487.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23488.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23489.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23490.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23491.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23492.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23493.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23494.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23495.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23496.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23497.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23498.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23499.png',
-    'https://ipfs.io/ipfs/bafybeicyihz3ib6is7rghqrks43joh2vkbv7hgnxqdg6lhufxfu7ksgo2m/SLIME%23500.png',
-    'https://ipfs.io/ipfs/bafybeid5qfc4h26jt3bkbvqghrlpryby2jezswjbwkpkjyqhzf4xpkztem/SLIME%20501.png',
-    'https://ipfs.io/ipfs/bafybeid5qfc4h26jt3bkbvqghrlpryby2jezswjbwkpkjyqhzf4xpkztem/SLIME%20502.png',
-    'https://ipfs.io/ipfs/bafybeid5qfc4h26jt3bkbvqghrlpryby2jezswjbwkpkjyqhzf4xpkztem/SLIME%20503.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23101.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23102.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23103.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23104.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23105.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23106.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23107.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23108.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23109.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23110.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23111.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23112.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23113.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23114.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23115.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23116.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23117.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23118.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23119.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23120.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23121.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23122.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23123.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23124.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23125.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23126.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23127.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23128.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23129.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23130.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23131.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23132.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23133.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23134.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23135.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23136.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23137.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23138.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23139.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23140.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23141.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23142.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23143.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23144.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23145.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23146.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23147.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23148.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23149.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23150.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23151.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23152.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23153.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23154.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23155.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23156.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23157.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23158.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23159.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23160.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23161.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23162.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23163.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23164.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23165.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23166.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23167.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23168.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23169.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23170.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23171.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23172.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23173.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23174.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23175.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23176.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23177.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23178.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23179.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23180.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23181.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23182.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23183.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23184.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23185.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23186.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23187.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23188.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23189.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23190.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23191.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23192.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23193.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23194.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23195.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23196.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23197.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23198.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23199.png',
-    'https://ipfs.io/ipfs/bafybeievzzpyzniddsvj26gjjrimgzeo2s5vnxzlhl3xblhhvfgu6ayupq/SLIME%23200.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23704.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23705.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23706.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23707.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23708.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23709.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23710.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23711.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23712.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23713.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23714.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23715.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23716.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23717.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23718.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23719.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23720.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23721.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23722.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23723.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23724.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23725.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23726.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23727.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23728.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23729.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23730.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23731.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23732.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23733.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23734.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23735.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23736.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23737.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23738.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23739.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23740.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23741.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23742.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23743.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23744.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23745.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23746.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23747.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23748.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23749.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23750.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23751.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23752.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23753.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23754.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23755.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23756.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23757.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23758.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23759.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23760.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23761.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23762.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23763.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23764.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23765.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23766.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23767.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23768.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23769.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23770.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23771.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23772.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23773.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23774.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23775.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23776.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23777.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23778.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23779.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23780.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23781.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23782.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23783.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23784.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23785.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23786.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23787.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23788.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23789.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23790.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23791.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23792.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23793.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23794.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23795.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23796.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23797.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23798.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23799.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23800.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23801.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23802.png',
-    'https://ipfs.io/ipfs/bafybeifmzpuzc4shbiobmdh63wbdxc5uzi5ulmncyzg524tp2evxcumtfa/SLIME%23803.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23504.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23505.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23506.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23507.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23508.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23509.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23510.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23511.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23512.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23513.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23514.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23515.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23516.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23517.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23518.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23519.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23520.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23521.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23522.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23523.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23524.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23525.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23526.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23527.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23528.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23529.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23530.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23531.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23532.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23533.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23534.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23535.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23536.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23537.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23538.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23539.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23540.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23541.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23542.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23543.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23544.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23545.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23546.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23547.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23548.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23549.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23550.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23551.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23552.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23553.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23554.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23555.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23556.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23557.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23558.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23559.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23560.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23561.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23562.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23563.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23564.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23565.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23566.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23567.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23568.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23569.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23570.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23571.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23572.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23573.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23574.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23575.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23576.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23577.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23578.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23579.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23580.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23581.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23582.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23583.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23584.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23585.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23586.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23587.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23588.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23589.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23590.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23591.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23592.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23593.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23594.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23595.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23596.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23597.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23598.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23599.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23600.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23601.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23602.png',
-    'https://ipfs.io/ipfs/bafybeigcybkbfetijnaczslxxfmdjgu3rmhdf5o7wbeakkomf2jhjnof4a/SLIME%23603.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23201.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23202.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23203.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23204.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23205.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23206.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23207.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23208.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23209.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23210.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23211.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23212.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23213.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23214.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23215.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23216.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23217.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23218.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23219.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23220.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23221.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23222.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23223.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23224.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23225.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23226.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23227.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23228.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23229.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23230.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23231.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23232.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23233.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23234.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23235.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23236.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23237.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23238.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23239.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23240.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23241.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23242.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23243.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23244.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23245.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23246.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23247.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23248.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23249.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23250.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23251.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23252.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23253.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23254.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23255.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23256.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23257.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23258.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23259.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23260.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23261.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23262.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23263.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23264.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23265.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23266.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23267.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23268.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23269.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23270.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23271.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23272.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23273.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23274.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23275.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23276.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23277.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23278.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23279.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23280.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23281.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23282.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23283.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23284.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23285.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23286.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23287.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23288.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23289.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23290.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23291.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23292.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23293.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23294.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23295.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23296.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23297.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23298.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23299.png',
-    'https://ipfs.io/ipfs/bafybeihhpwhksp2k65rbx4sshqbjvigadylkd63nhi7zwqo5dltqsub2qu/SLIME%23300.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%231000.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23904.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23905.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23906.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23907.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23908.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23909.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23910.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23911.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23912.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23913.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23914.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23915.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23916.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23917.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23918.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23919.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23920.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23921.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23922.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23923.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23924.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23925.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23926.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23927.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23928.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23929.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23930.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23931.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23932.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23933.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23934.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23935.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23936.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23937.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23938.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23939.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23940.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23941.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23942.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23943.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23944.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23945.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23946.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23947.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23948.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23949.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23950.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23951.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23952.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23953.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23954.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23955.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23956.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23957.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23958.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23959.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23960.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23961.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23962.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23963.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23964.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23965.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23966.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23967.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23968.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23969.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23970.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23971.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23972.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23973.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23974.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23975.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23976.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23977.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23978.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23979.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23980.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23981.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23982.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23983.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23984.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23985.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23986.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23987.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23988.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23989.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23990.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23991.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23992.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23993.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23994.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23995.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23996.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23997.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23998.png',
-    'https://ipfs.io/ipfs/bafybeihmfh2pwqwpthgjf74v5ls2yr27j3fgozs522duvljprrkgnbe5cq/SLIME%23999.png',
-];
+import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
 
-
-// LOD settings
-const THUMB_SIZE = 128;  // Far-away texture resolution (~87MB for 1000)
-const FULL_SIZE = 512;   // Close-up texture resolution
-const LOD_NEAR = 8;      // Upgrade to hi-res within this distance
-const LOD_FAR = 12;      // Downgrade back beyond this distance
-const MAX_HIRES = 20;    // Max simultaneous full-res textures on GPU
-const LOD_INTERVAL = 500; // ms between LOD checks
-
-// Module-level caches — persist across level restarts
-const thumbCache = new Map();  // url → THREE.CanvasTexture (128px)
-const hiResCache = new Map();  // url → THREE.CanvasTexture (512px)
-const imageCache = new Map();  // url → HTMLImageElement (for on-demand upscale)
-const plateCache = new Map();  // label → THREE.CanvasTexture
+// Module-level state — persists across level restarts
+let atlasTextures = null;   // Array of THREE.Texture (one per art atlas sheet)
+let plateTexture = null;    // Single THREE.Texture for nameplate atlas
+let manifest = null;        // { tileSize, gridSize, atlasCount, plate, tiles }
+let ktx2Supported = null;   // null = untested, true/false after first load
 
 // Shared geometry/material — created once
 let sharedFrameGeo, sharedArtGeo, sharedPlateGeo, sharedFrameMat;
-
-function downscale(img, maxDim, THREE) {
-    let w = img.width, h = img.height;
-    if (w > maxDim || h > maxDim) {
-        const scale = maxDim / Math.max(w, h);
-        w = Math.round(w * scale);
-        h = Math.round(h * scale);
-    }
-    const c = document.createElement('canvas');
-    c.width = w;
-    c.height = h;
-    c.getContext('2d').drawImage(img, 0, 0, w, h);
-    const tex = new THREE.CanvasTexture(c);
-    tex.colorSpace = THREE.SRGBColorSpace;
-    return tex;
-}
-
-function makeNameplateTexture(label) {
-    const c = document.createElement('canvas');
-    c.width = 256;
-    c.height = 40;
-    const ctx = c.getContext('2d');
-    ctx.fillStyle = '#1a1008';
-    ctx.fillRect(0, 0, 256, 40);
-    ctx.fillStyle = '#fff5e0';
-    ctx.font = 'bold 22px monospace';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(label, 128, 20);
-    return c;
-}
 
 function ensureSharedResources(THREE) {
     if (!sharedFrameGeo) {
@@ -1063,220 +22,203 @@ function ensureSharedResources(THREE) {
     }
 }
 
+/**
+ * Load a texture, trying KTX2 first with JPEG/PNG fallback.
+ */
+function loadTexture(path, THREE, renderer) {
+    const ktx2Path = path.replace(/\.(jpg|png)$/, '.ktx2');
+
+    if (ktx2Supported === false) {
+        return loadWithTextureLoader(path, THREE);
+    }
+
+    const ktx2Loader = new KTX2Loader()
+        .setTranscoderPath('https://cdn.jsdelivr.net/npm/three@0.164.0/examples/jsm/libs/basis/')
+        .detectSupport(renderer);
+
+    return new Promise((resolve) => {
+        ktx2Loader.load(
+            ktx2Path,
+            (tex) => {
+                ktx2Supported = true;
+                tex.colorSpace = THREE.SRGBColorSpace;
+                tex.generateMipmaps = false;
+                ktx2Loader.dispose();
+                resolve(tex);
+            },
+            undefined,
+            () => {
+                // KTX2 failed — fall back to JPEG/PNG
+                ktx2Supported = false;
+                ktx2Loader.dispose();
+                loadWithTextureLoader(path, THREE).then(resolve);
+            }
+        );
+    });
+}
+
+function loadWithTextureLoader(path, THREE) {
+    return new Promise((resolve, reject) => {
+        new THREE.TextureLoader().load(
+            path,
+            (tex) => {
+                tex.colorSpace = THREE.SRGBColorSpace;
+                tex.magFilter = THREE.LinearFilter;
+                tex.minFilter = THREE.LinearFilter;
+                tex.generateMipmaps = false;
+                resolve(tex);
+            },
+            undefined,
+            reject
+        );
+    });
+}
+
+/**
+ * Load atlas textures and manifest. Caches across level restarts.
+ */
+function loadAtlasAssets(THREE, renderer, onProgress) {
+    if (atlasTextures && plateTexture && manifest) {
+        const total = (atlasTextures.length || 2) + 2;
+        if (onProgress) onProgress(total, total);
+        return Promise.resolve();
+    }
+
+    // First load manifest to know how many art atlases exist
+    return fetch('assets/atlas_manifest.json')
+        .then(r => r.json())
+        .then(manifestData => {
+            manifest = manifestData;
+            const artCount = manifest.atlasCount;
+            const total = artCount + 2; // art sheets + plate sheet + manifest
+            let loaded = 1; // manifest already loaded
+            if (onProgress) onProgress(loaded, total);
+            const report = () => { loaded++; if (onProgress) onProgress(loaded, total); };
+
+            const artPromises = [];
+            for (let i = 0; i < artCount; i++) {
+                artPromises.push(
+                    loadTexture(`assets/atlas_${i}.jpg`, THREE, renderer).then(tex => { report(); return tex; })
+                );
+            }
+
+            const platePromise = loadTexture('assets/plates_0.png', THREE, renderer).then(tex => { report(); return tex; });
+
+            return Promise.all([Promise.all(artPromises), platePromise]);
+        })
+        .then(([artTextures, plateTex]) => {
+            atlasTextures = artTextures;
+            plateTexture = plateTex;
+        });
+}
+
 export class GalleryManager {
     constructor() {
         this.paintings = [];
         this._disposed = false;
-        this._THREE = null;
-        this._lastLOD = 0;
-        this._worldPos = null; // reusable vector
     }
 
     /**
-     * Place paintings on walls and load textures.
-     * Returns a Promise that resolves when all textures are loaded.
-     * @param {function} onProgress - called with (loaded, total) as textures arrive
+     * @param {object} wallMeshes
+     * @param {THREE} THREE
+     * @param {WebGLRenderer} renderer — needed for KTX2 format detection
+     * @param {function} onProgress
      */
-    placeArtwork(wallMeshes, THREE, onProgress) {
+    placeArtwork(wallMeshes, THREE, renderer, onProgress) {
         this._disposed = false;
-        this._THREE = THREE;
-        this._worldPos = new THREE.Vector3();
         ensureSharedResources(THREE);
 
-        const keys = Object.keys(wallMeshes);
-        for (let i = keys.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [keys[i], keys[j]] = [keys[j], keys[i]];
-        }
+        return loadAtlasAssets(THREE, renderer, onProgress).then(() => {
+            if (this._disposed) return;
 
-        const urlPool = [...SLIME_URLS];
-        for (let i = urlPool.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [urlPool[i], urlPool[j]] = [urlPool[j], urlPool[i]];
-        }
+            const tileNames = Object.keys(manifest.tiles);
+            const keys = Object.keys(wallMeshes);
 
-        const count = Math.min(keys.length, urlPool.length);
-
-        // Build all painting meshes synchronously
-        const toLoad = []; // paintings that need network fetch
-        let loaded = 0;
-
-        for (let i = 0; i < count; i++) {
-            const key = keys[i];
-            const wall = wallMeshes[key];
-            const dir = key.split(',')[2];
-            const url = urlPool[i];
-
-            const group = new THREE.Group();
-
-            // Frame
-            group.add(new THREE.Mesh(sharedFrameGeo, sharedFrameMat));
-
-            // Art plane
-            const artMat = new THREE.MeshStandardMaterial({
-                color: 0x1a1a2e, roughness: 0.5, metalness: 0.0,
-                side: THREE.DoubleSide
-            });
-            const art = new THREE.Mesh(sharedArtGeo, artMat);
-            art.position.z = 0.01;
-            group.add(art);
-
-            // Nameplate
-            const numMatch = url.match(/SLIME%23(\d+)\.png/);
-            const label = numMatch ? `SLIME #${numMatch[1]}` : 'SLIME';
-            let plateTex = plateCache.get(label);
-            if (!plateTex) {
-                plateTex = new THREE.CanvasTexture(makeNameplateTexture(label));
-                plateTex.colorSpace = THREE.SRGBColorSpace;
-                plateCache.set(label, plateTex);
-            }
-            const plateMat = new THREE.MeshBasicMaterial({
-                map: plateTex, side: THREE.DoubleSide
-            });
-            const plate = new THREE.Mesh(sharedPlateGeo, plateMat);
-            plate.position.set(0, -0.92, 0.05);
-            group.add(plate);
-
-            // Position offset
-            if (dir === 'N') {
-                group.position.set(0, 0, 0.16);
-            } else if (dir === 'S') {
-                group.position.set(0, 0, -0.16);
-                group.rotation.y = Math.PI;
-            } else if (dir === 'W') {
-                group.position.set(0.16, 0, 0);
-                group.rotation.y = Math.PI / 2;
-            } else if (dir === 'E') {
-                group.position.set(-0.16, 0, 0);
-                group.rotation.y = -Math.PI / 2;
+            // Shuffle wall keys
+            for (let i = keys.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [keys[i], keys[j]] = [keys[j], keys[i]];
             }
 
-            wall.add(group);
-            const painting = { group, artMat, plateMat, url, hiRes: false };
-            this.paintings.push(painting);
-
-            // Cached from a previous level — instant
-            if (thumbCache.has(url)) {
-                artMat.map = thumbCache.get(url);
-                artMat.color.set(0xffffff);
-                artMat.needsUpdate = true;
-                loaded++;
-            } else {
-                toLoad.push({ artMat, url });
+            // Shuffle tile names
+            const shuffledTiles = [...tileNames];
+            for (let i = shuffledTiles.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffledTiles[i], shuffledTiles[j]] = [shuffledTiles[j], shuffledTiles[i]];
             }
-        }
 
-        // Report initial cached progress
-        if (onProgress) onProgress(loaded, count);
+            const count = Math.min(keys.length, shuffledTiles.length);
+            const invGrid = 1 / manifest.gridSize;
+            const invPlateCols = 1 / manifest.plate.cols;
+            const invPlateRows = 1 / manifest.plate.rows;
 
-        // If everything was cached, resolve immediately
-        if (toLoad.length === 0) {
-            return Promise.resolve();
-        }
+            for (let i = 0; i < count; i++) {
+                const key = keys[i];
+                const wall = wallMeshes[key];
+                const dir = key.split(',')[2];
+                const label = shuffledTiles[i];
+                const tile = manifest.tiles[label];
 
-        // Load uncached images in batches to avoid hanging the main thread
-        const BATCH = 20;
-        return new Promise((resolve) => {
-            let batchIdx = 0;
-            const launchBatch = () => {
-                const end = Math.min(batchIdx + BATCH, toLoad.length);
-                for (let j = batchIdx; j < end; j++) {
-                    const { artMat, url } = toLoad[j];
-                    const img = new Image();
-                    img.crossOrigin = 'anonymous';
-                    img.onload = () => {
-                        if (this._disposed) { done(); return; }
-                        imageCache.set(url, img);
-                        const thumb = downscale(img, THUMB_SIZE, THREE);
-                        thumbCache.set(url, thumb);
-                        artMat.map = thumb;
-                        artMat.color.set(0xffffff);
-                        artMat.needsUpdate = true;
-                        done();
-                    };
-                    img.onerror = () => done();
-                    img.src = url;
+                const group = new THREE.Group();
+
+                // Frame
+                group.add(new THREE.Mesh(sharedFrameGeo, sharedFrameMat));
+
+                // Art plane — clone the correct atlas texture with unique UV offset
+                const artTex = atlasTextures[tile.atlas].clone();
+                artTex.needsUpdate = true;
+                artTex.repeat.set(invGrid, invGrid);
+                artTex.offset.set(tile.col * invGrid, tile.row * invGrid);
+
+                const artMat = new THREE.MeshStandardMaterial({
+                    map: artTex,
+                    roughness: 0.5,
+                    metalness: 0.0,
+                    side: THREE.DoubleSide
+                });
+                const art = new THREE.Mesh(sharedArtGeo, artMat);
+                art.position.z = 0.01;
+                group.add(art);
+
+                // Nameplate — clone plate atlas texture with unique UV offset
+                const pTex = plateTexture.clone();
+                pTex.needsUpdate = true;
+                pTex.repeat.set(invPlateCols, invPlateRows);
+                pTex.offset.set(tile.plateCol * invPlateCols, tile.plateRow * invPlateRows);
+
+                const plateMat = new THREE.MeshBasicMaterial({
+                    map: pTex, side: THREE.DoubleSide, transparent: true
+                });
+                const plate = new THREE.Mesh(sharedPlateGeo, plateMat);
+                plate.position.set(0, -0.92, 0.05);
+                group.add(plate);
+
+                // Position offset based on wall direction
+                if (dir === 'N') {
+                    group.position.set(0, 0, 0.16);
+                } else if (dir === 'S') {
+                    group.position.set(0, 0, -0.16);
+                    group.rotation.y = Math.PI;
+                } else if (dir === 'W') {
+                    group.position.set(0.16, 0, 0);
+                    group.rotation.y = Math.PI / 2;
+                } else if (dir === 'E') {
+                    group.position.set(-0.16, 0, 0);
+                    group.rotation.y = -Math.PI / 2;
                 }
-                batchIdx = end;
-                // Schedule next batch on next frame to keep UI responsive
-                if (batchIdx < toLoad.length) {
-                    requestAnimationFrame(launchBatch);
-                }
-            };
 
-            const done = () => {
-                loaded++;
-                if (onProgress) onProgress(loaded, count);
-                if (loaded >= count) resolve();
-            };
-
-            launchBatch();
+                wall.add(group);
+                this.paintings.push({ group, artMat, plateMat, artTex, pTex });
+            }
         });
-    }
-
-    /** Call from animate loop — manages LOD texture swaps based on player distance */
-    update(playerPos) {
-        const now = performance.now();
-        if (now - this._lastLOD < LOD_INTERVAL) return;
-        this._lastLOD = now;
-
-        const THREE = this._THREE;
-        if (!THREE || this.paintings.length === 0) return;
-
-        // Calculate distances
-        const wp = this._worldPos;
-        const withDist = [];
-        for (const p of this.paintings) {
-            if (!p.group.parent || !p.group.parent.visible) continue;
-            p.group.getWorldPosition(wp);
-            const dx = playerPos.x - wp.x;
-            const dz = playerPos.z - wp.z;
-            p._dist = dx * dx + dz * dz; // squared distance
-            withDist.push(p);
-        }
-
-        // Sort by distance — nearest first
-        withDist.sort((a, b) => a._dist - b._dist);
-
-        const nearSq = LOD_NEAR * LOD_NEAR;
-        const farSq = LOD_FAR * LOD_FAR;
-        let hiCount = 0;
-
-        for (const p of withDist) {
-            const img = imageCache.get(p.url);
-            if (!img) continue; // not loaded yet
-
-            if (p._dist < nearSq && hiCount < MAX_HIRES) {
-                // Upgrade to hi-res
-                if (!p.hiRes) {
-                    let hiTex = hiResCache.get(p.url);
-                    if (!hiTex) {
-                        hiTex = downscale(img, FULL_SIZE, THREE);
-                        hiResCache.set(p.url, hiTex);
-                    }
-                    p.artMat.map = hiTex;
-                    p.artMat.needsUpdate = true;
-                    p.hiRes = true;
-                }
-                hiCount++;
-            } else if (p.hiRes && p._dist > farSq) {
-                // Downgrade to thumb
-                const thumb = thumbCache.get(p.url);
-                if (thumb) {
-                    p.artMat.map = thumb;
-                    p.artMat.needsUpdate = true;
-                    p.hiRes = false;
-                }
-            } else if (p.hiRes) {
-                hiCount++;
-            }
-        }
     }
 
     cleanup() {
         this._disposed = true;
         for (const p of this.paintings) {
             if (p.group.parent) p.group.parent.remove(p.group);
+            p.artTex.dispose();
+            p.pTex.dispose();
             p.artMat.dispose();
             p.plateMat.dispose();
         }

@@ -203,7 +203,7 @@ function buildLevel() {
         // Gallery — SLIME NFT paintings on walls with loading progress
         gallery = new GalleryManager();
         const loadingText = loadingEl?.querySelector('p');
-        gallery.placeArtwork(mazeData.wallMeshes, THREE, (loaded, total) => {
+        gallery.placeArtwork(mazeData.wallMeshes, THREE, renderer, (loaded, total) => {
             if (loadingText) loadingText.textContent = `LOADING GALLERY: ${loaded} / ${total}`;
         }).then(() => {
             if (loadingEl) loadingEl.style.display = 'none';
@@ -391,9 +391,6 @@ function animate() {
         if (gridPos) {
             gameState.updateVisited(gridPos.row, gridPos.col);
         }
-
-        // Update gallery LOD
-        if (gallery) gallery.update(camera.position);
 
         // Update particles
         updateParticles(dt);
