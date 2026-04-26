@@ -511,10 +511,10 @@ function applyViewportSize() {
 
     // Size and center the renderer canvas
     renderer.setSize(vpW, vpH);
-    if (eyesBleed) eyesBleed.resize(vpW, vpH);
     renderer.domElement.style.position = 'absolute';
     renderer.domElement.style.left = offsetX + 'px';
     renderer.domElement.style.top = offsetY + 'px';
+    if (eyesBleed) eyesBleed.resize(vpW, vpH);
 
     // Match HUD canvas to the same viewport
     const hudCanvas = document.getElementById('hud-canvas');

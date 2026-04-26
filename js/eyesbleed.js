@@ -1,41 +1,7 @@
 // eyesbleed.js — "Eyes Bleed!" mode: animated shader effects on maze walls
-// V2: post-processing stack + GPU particles + vertex distortion
+// V2: GPU particles + vertex distortion + canvas overlay (scanlines/grain)
 
 import * as THREE from 'three';
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
-import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-
-// Custom film grain + scanlines shader (v0.164 FilmShader lacks scanlines)
-const FilmGrainScanlineShader = {
-    uniforms: {
-        tDiffuse: { value: null },
-        time: { value: 0 },
-        grainIntensity: { value: 0.04 },
-        scanlineIntensity: { value: 0.03 },
-        scanlineCount: { value: 400.0 }
-    },
-    vertexShader: `varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
-    fragmentShader: `
-        uniform sampler2D tDiffuse;
-        uniform float time;
-        uniform float grainIntensity;
-        uniform float scanlineIntensity;
-        uniform float scanlineCount;
-        varying vec2 vUv;
-        float rand(vec2 co){ return fract(sin(dot(co,vec2(12.9898,78.233)))*43758.5453); }
-        void main(){
-            vec4 col = texture2D(tDiffuse, vUv);
-            float grain = (rand(vUv + fract(time)) - 0.5) * grainIntensity;
-            col.rgb += grain;
-            float scanline = sin(vUv.y * scanlineCount * 3.14159) * scanlineIntensity;
-            col.rgb -= scanline;
-            gl_FragColor = col;
-        }
-    `
-};
 
 // GPU particle shaders
 const PARTICLE_VERTEX_SHADER = `
@@ -43,10 +9,10 @@ const PARTICLE_VERTEX_SHADER = `
     uniform float uTime;
     varying float vAlpha;
     void main(){
-        float t = fract(uTime / 3.0 + aPhase);          // loop every 3s
+        float t = fract(uTime / 3.0 + aPhase);
         vec3 p = position;
-        p.y += t * 2.5;                                   // float upward
-        p.x += sin(t * 6.2832 + aPhase * 10.0) * 0.15;   // drift
+        p.y += t * 2.5;
+        p.x += sin(t * 6.2832 + aPhase * 10.0) * 0.15;
         p.z += cos(t * 6.2832 + aPhase * 7.0) * 0.15;
         vAlpha = smoothstep(0.0, 0.1, t) * smoothstep(1.0, 0.6, t);
         vec4 mv = modelViewMatrix * vec4(p, 1.0);
@@ -116,7 +82,7 @@ uniform float time;
 varying vec2 vUv;
 void main() {
     vUv = uv;
-    // UV warping — gentle surface undulation (no normal attribute needed)
+    // UV warping — gentle surface undulation
     vUv += 0.005 * vec2(
         sin(position.x * 4.0 + time * 1.0),
         cos(position.z * 4.0 + time * 0.8)
@@ -184,14 +150,12 @@ export class EyesBleedManager {
         this._originalMaterials = new Map();
         // Array of ShaderMaterials created (for disposal)
         this._shaderMaterials = [];
-        // V2: post-processing + particles
-        this._composer = null;
-        this._filmPass = null;
+        // V2: particles + overlay canvas
         this._particleSystem = null;
         this._particleTimeUniform = { value: 0 };
         this._scene = null;
-        this._renderer = null;
-        this._camera = null;
+        this._overlayCanvas = null;
+        this._overlayCtx = null;
     }
 
     get isActive() {
@@ -203,7 +167,7 @@ export class EyesBleedManager {
      * @param {Object} wallMeshes - dict keyed "r,c,dir" → THREE.Mesh
      * @param {Object} [floorMeshes] - dict keyed "r,c" → THREE.Mesh
      * @param {Object} [ceilingMeshes] - dict keyed "r,c" → THREE.Mesh
-     * @param {Object} [renderContext] - { renderer, scene, camera } for V2 post-processing
+     * @param {Object} [renderContext] - { renderer, scene, camera } for V2 particles
      */
     activate(wallMeshes, floorMeshes, ceilingMeshes, renderContext = {}) {
         if (this._active) return;
@@ -276,19 +240,19 @@ export class EyesBleedManager {
             }
         }
 
-        // V2: post-processing + particles (only if render context supplied)
-        const { renderer, scene: sc, camera } = renderContext;
-        if (renderer && sc && camera) {
-            this._renderer = renderer;
+        // V2: particles + overlay (only if render context supplied)
+        const { renderer, scene: sc } = renderContext;
+        if (sc) {
             this._scene = sc;
-            this._camera = camera;
-            this._createComposer(renderer, sc, camera);
             this._createParticles(sc, floorMeshes);
+        }
+        if (renderer) {
+            this._createOverlay(renderer);
         }
     }
 
     /**
-     * Deactivate — restore original materials and dispose shaders + V2 systems.
+     * Deactivate — restore original materials and dispose V2 systems.
      */
     deactivate() {
         if (!this._active) return;
@@ -306,16 +270,6 @@ export class EyesBleedManager {
         }
         this._shaderMaterials = [];
 
-        // V2: dispose post-processing
-        if (this._composer) {
-            for (const pass of this._composer.passes) {
-                if (pass.dispose) pass.dispose();
-            }
-            this._composer.dispose();
-            this._composer = null;
-            this._filmPass = null;
-        }
-
         // V2: dispose particles
         if (this._particleSystem) {
             if (this._scene) this._scene.remove(this._particleSystem);
@@ -324,9 +278,14 @@ export class EyesBleedManager {
             this._particleSystem = null;
         }
 
-        this._renderer = null;
+        // V2: remove overlay canvas
+        if (this._overlayCanvas) {
+            this._overlayCanvas.remove();
+            this._overlayCanvas = null;
+            this._overlayCtx = null;
+        }
+
         this._scene = null;
-        this._camera = null;
     }
 
     /**
@@ -335,12 +294,9 @@ export class EyesBleedManager {
     update(time) {
         if (this._active) {
             this.timeUniform.value = time;
-            // V2: update film shader time
-            if (this._filmPass) {
-                this._filmPass.uniforms.time.value = time;
-            }
-            // V2: update particle time
             this._particleTimeUniform.value = time;
+            // Draw overlay scanlines + grain
+            this._drawOverlay(time);
         }
     }
 
@@ -352,59 +308,79 @@ export class EyesBleedManager {
     }
 
     /**
-     * V2: Render through composer if active, otherwise normal render.
+     * Render — no EffectComposer, just normal rendering.
      */
     render(renderer, scene, camera) {
-        if (this._active && this._composer) {
-            this._composer.render();
-        } else {
-            renderer.render(scene, camera);
-        }
+        renderer.render(scene, camera);
     }
 
     /**
-     * V2: Resize composer render targets on window resize.
+     * Resize — match overlay canvas to viewport.
      */
     resize(width, height) {
-        if (this._composer) {
-            this._composer.setSize(width, height);
+        if (this._overlayCanvas) {
+            this._overlayCanvas.width = width;
+            this._overlayCanvas.height = height;
+            this._overlayCanvas.style.width = width + 'px';
+            this._overlayCanvas.style.height = height + 'px';
         }
     }
 
     /**
-     * V2: Build the post-processing chain.
+     * V2: Create a 2D canvas overlay for scanlines + grain.
+     * Positioned directly on top of the renderer canvas.
      */
-    _createComposer(renderer, scene, camera) {
-        const size = renderer.getSize(new THREE.Vector2());
-
-        // Explicit render target — avoids half-float issues on some GPUs
-        const rt = new THREE.WebGLRenderTarget(size.x, size.y, {
-            type: THREE.HalfFloatType
-        });
-        const composer = new EffectComposer(renderer, rt);
-
-        // 1. Base scene render
-        composer.addPass(new RenderPass(scene, camera));
-
-        // 2. Bloom — gentle glow from shader walls
-        const bloom = new UnrealBloomPass(
-            new THREE.Vector2(size.x, size.y), 0.3, 0.4, 0.4
-        );
-        composer.addPass(bloom);
-
-        // 3. Film grain + scanlines (mild)
-        const film = new ShaderPass(FilmGrainScanlineShader);
-        composer.addPass(film);
-        this._filmPass = film;
-
-        // 4. Output — gamma/tonemapping (must be last)
-        composer.addPass(new OutputPass());
-
-        this._composer = composer;
+    _createOverlay(renderer) {
+        const glCanvas = renderer.domElement;
+        const canvas = document.createElement('canvas');
+        canvas.width = glCanvas.width;
+        canvas.height = glCanvas.height;
+        canvas.style.position = 'absolute';
+        canvas.style.left = glCanvas.style.left;
+        canvas.style.top = glCanvas.style.top;
+        canvas.style.width = glCanvas.style.width || glCanvas.width + 'px';
+        canvas.style.height = glCanvas.style.height || glCanvas.height + 'px';
+        canvas.style.pointerEvents = 'none';
+        canvas.style.zIndex = '1';
+        // Insert right after the GL canvas
+        glCanvas.parentNode.insertBefore(canvas, glCanvas.nextSibling);
+        this._overlayCanvas = canvas;
+        this._overlayCtx = canvas.getContext('2d');
     }
 
     /**
-     * V2: Spawn GPU particles in ~30% of floor cells.
+     * V2: Draw scanlines + subtle grain onto the overlay canvas each frame.
+     */
+    _drawOverlay(time) {
+        const ctx = this._overlayCtx;
+        if (!ctx) return;
+        const w = this._overlayCanvas.width;
+        const h = this._overlayCanvas.height;
+
+        ctx.clearRect(0, 0, w, h);
+
+        // Scanlines — thin dark horizontal lines every 3px
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.04)';
+        for (let y = 0; y < h; y += 3) {
+            ctx.fillRect(0, y, w, 1);
+        }
+
+        // Grain — sparse random noise dots
+        const grainAlpha = 0.03;
+        const dotCount = Math.floor(w * h * 0.002);
+        for (let i = 0; i < dotCount; i++) {
+            const x = (Math.random() * w) | 0;
+            const y = (Math.random() * h) | 0;
+            const bright = Math.random() > 0.5;
+            ctx.fillStyle = bright
+                ? `rgba(255,255,255,${grainAlpha})`
+                : `rgba(0,0,0,${grainAlpha * 2})`;
+            ctx.fillRect(x, y, 1, 1);
+        }
+    }
+
+    /**
+     * V2: Spawn GPU particles in ~15% of floor cells.
      */
     _createParticles(scene, floorMeshes) {
         if (!floorMeshes) return;
@@ -438,7 +414,6 @@ export class EyesBleedManager {
 
         const positions = new Float32Array(totalParticles * 3);
         const phases = new Float32Array(totalParticles);
-        // Average color across all cells for the single material
         let rSum = 0, gSum = 0, bSum = 0;
 
         let idx = 0;
