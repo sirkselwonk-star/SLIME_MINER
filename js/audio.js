@@ -1,5 +1,5 @@
 // audio.js — Procedural industrial soundtrack (Web Audio API)
-// 132-bar arrangement (~4:04) with swing, slides, accents, delay, acid + scream + bass wah solos
+// 256-bar arrangement (~7:53) with swing, slides, accents, delay, acid + scream + bass wah + phaser + siren solos
 
 export class SoundtrackManager {
     constructor() {
@@ -25,6 +25,8 @@ export class SoundtrackManager {
         this._prevAcidNote = 0;
         this._prevScreamNote = 0;
         this._prevBassNote = 0;
+        this._prevPhaserNote = 0;
+        this._prevSirenNote = 0;
 
         // ===== Pattern bank (velocity 0.0–1.0 per step) =====
         //                        1  .  .  .   2  .  .  .   3  .  .  .   4  .  .  .
@@ -91,6 +93,34 @@ export class SoundtrackManager {
               hihat:   [.4,0,.6, 0, .4, 0,.6, 0, .4, 0,.6, 0, .4, 0,.6, 0],
               openHat: [0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0],
               metal:   [0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0] },
+
+            // 9: "Half-Time" — clank only on beat 3, spacious kick, open hat accent
+            { kick:    [1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0],
+              clank:   [0, 0, 0, 0,  0, 0, 0, 0,  1, 0, 0, 0,  0, 0, 0, 0],
+              hihat:   [0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0],
+              openHat: [0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0,.7],
+              metal:   [.3,0, 0, 0,  0, 0, 0, 0, .3, 0, 0, 0,  0, 0, 0, 0] },
+
+            // 10: "Double-Time" — relentless 16th-note hihat barrage
+            { kick:    [1, 0, 0, 0, .8, 0, 0, 0,  1, 0, 0, 0, .8, 0, 0, 0],
+              clank:   [0, 0, 0, 0,  1, 0, 0, 0,  0, 0, 0, 0,  1, 0, 0, 0],
+              hihat:   [.8,.5,.7,.4,.8,.5,.7,.4,.8,.5,.7,.4,.8,.5,.7,.4],
+              openHat: [0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0],
+              metal:   [.5,0, 0, 0,  0, 0, 0, 0, .5, 0, 0, 0,  0, 0, 0, 0] },
+
+            // 11: "Tribal" — heavy metal hits in primal rhythm, no hihat
+            { kick:    [1, 0, 0, 1,  0, 0, 1, 0,  0, 1, 0, 0,  1, 0, 0, 0],
+              clank:   [0, 0, 1, 0,  0, 0, 0, 0,  1, 0, 0, 0,  0, 0, 1, 0],
+              hihat:   [0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0],
+              openHat: [0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0],
+              metal:   [1, 0,.6, 0, .4, 0,.8, 0, .6, 0,.4, 0, .8,.4,.6,.4] },
+
+            // 12: "Chaos" — dense fills, every voice active, random-feeling accents
+            { kick:    [1, 0,.5, 0,  1,.3,.7, 0,  1, 0,.5,.3,  1,.5,.7, 1],
+              clank:   [0,.5, 0,.3,  1, 0,.4,.5,  0,.3, 0,.5,  1,.3,.5,.7],
+              hihat:   [.6,.4,.7,.3,.6,.4,.7,.3,.6,.4,.7,.3,.6,.4,.7,.5],
+              openHat: [0, 0, 0, 0,  0, 0, 0,.6,  0, 0, 0, 0,  0, 0, 0,.8],
+              metal:   [.5, 0,.3, 0, .5, 0,.3,.5, .5, 0,.3, 0, .5,.3,.5,.7] },
         ];
 
         // ===== Bass progressions =====
@@ -103,6 +133,9 @@ export class SoundtrackManager {
             /* 5  descend */ [[0, 55], [4, 49], [8, 41.2], [12, 36.7]],
             /* 6  pedal-E */ [[0, 41.2]],
             /* 7  climb   */ [[0, 41.2], [4, 49], [8, 55], [12, 55]],
+            /* 8  chromatic */ [[0, 55], [4, 58.3], [8, 55], [12, 51.9]],
+            /* 9  power    */ [[0, 55], [4, 110], [8, 55], [12, 110]],
+            /* 10 staccato */ [[0,55],[1,58.3],[2,55],[3,51.9],[4,55],[5,58.3],[6,55],[7,51.9],[8,55],[9,58.3],[10,55],[11,51.9],[12,55],[13,58.3],[14,55],[15,51.9]],
         ];
 
         // ===== Solo phrases =====
@@ -229,58 +262,233 @@ export class SoundtrackManager {
                 [0,  0, 82.4,0,  0,  0,-82.4,0,  0,  0, 65.4,0,   0,  0,-73.4,0],
                 [0,  0, 55,  0,  0,  0,-82.4,0,  0,  0,  0,  0,   0,  0,  0,  0],
             ],
+
+            // ——— PHASER LEAD (triangle + 6-stage allpass sweep) ———
+
+            // phaserA: "Emergence" — sparse, ethereal, establishing the instrument
+            phaserA: [
+                [220,  0,  0,  0,   0,  0,  0,  0, 261.6,0,  0,  0,   0,  0,  0,  0],
+                [  0,  0,  0,  0, 293.7,0,  0,  0,   0,  0,  0,  0, 261.6,0,  0,  0],
+                [329.6,0,  0,  0,   0,  0,  0,  0,   0,  0,  0,  0, 293.7,0,  0,  0],
+                [261.6,0,  0,  0,   0,  0,  0,  0, 220,  0,  0,  0,   0,  0,  0,  0],
+            ],
+            // phaserB: "Cascading" — flowing runs with audible sweep
+            phaserB: [
+                [220,  0,261.6,0, 293.7,0,329.6,0,-392,  0,329.6,0, 293.7,0,261.6,0],
+                [293.7,0,329.6,0,-392,  0,-440, 0, 392,  0,329.6,0, 293.7,0,261.6,0],
+                [220,  0,261.6,0,-329.6,0,392,  0,-440,  0,392,  0, 329.6,0,293.7,0],
+                [-261.6,0,220, 0, 261.6,0,  0,  0, 220,  0,  0,  0,   0,  0,  0,  0],
+            ],
+            // phaserC: "Soaring" — high register, sustained, wide intervals
+            phaserC: [
+                [-392, 0,  0,  0,   0,  0,  0,  0,-440,  0,  0,  0,   0,  0,  0,  0],
+                [392,  0,  0,  0, 329.6,0,  0,  0,-392,  0,  0,  0,-440,  0,  0,  0],
+                [-329.6,0,293.7,0,-392, 0,  0,  0,-440,  0,392,  0, 329.6,0,  0,  0],
+                [-392, 0,-440, 0, 392,  0,329.6,0,-293.7,0,  0,  0,   0,  0,  0,  0],
+            ],
+            // phaserD: "Arpeggiated Storm" — fast arpeggios, peak phaser intensity
+            phaserD: [
+                [220,261.6,329.6,392,-440,392,329.6,261.6, 220,261.6,329.6,392,-440,392,329.6,261.6],
+                [293.7,329.6,392,-440,392,329.6,293.7,261.6, 293.7,329.6,392,-440,329.6,293.7,261.6,220],
+                [-440,392,329.6,293.7,261.6,293.7,329.6,-392, -440,392,329.6,261.6,220,261.6,-329.6,0],
+                [-392,329.6,-440,392,329.6,293.7,261.6,220, -261.6,0,  0,  0,   0,  0,  0,  0],
+            ],
+            // phaserE: "Dissolve" — sparse, fading, ethereal tail
+            phaserE: [
+                [329.6,0,  0,  0,   0,  0,  0,  0,   0,  0,  0,  0, 261.6,0,  0,  0],
+                [  0,  0,  0,  0,   0,  0,  0,  0, 220,  0,  0,  0,   0,  0,  0,  0],
+                [  0,  0,  0,  0, 261.6,0,  0,  0,   0,  0,  0,  0,   0,  0,  0,  0],
+                [220,  0,  0,  0,   0,  0,  0,  0,   0,  0,  0,  0,   0,  0,  0,  0],
+            ],
+
+            // ——— ACID LEAD (extended phrases) ———
+
+            // acidF: "Restless Chromatic" — semitone clusters for tension
+            acidF: [
+                [110,  0,116.5,0, 110,  0,103.8,0,-116.5,0,123.5,0, 116.5,0,110,  0],
+                [123.5,0,-130.8,0,123.5,0,116.5,0, 130.8,0,138.6,0,-146.8,0,138.6,0],
+                [130.8,0,146.8,0,-155.6,0,146.8,0, 130.8,0,138.6,0, 130.8,0,123.5,0],
+                [-116.5,0,110, 0, 116.5,0,110,  0,-103.8,0,  0,  0,   0,  0,  0,  0],
+            ],
+            // acidG: "Triplet Feel" — syncopated groupings of 3
+            acidG: [
+                [110,  0,130.8,146.8,0,164.8,196,  0,-220, 0,  0,196,164.8,0,146.8,0],
+                [130.8,0,164.8,196,  0,-220,261.6,0, 220,  0,  0,196,164.8,0,130.8,0],
+                [-220, 0,196,164.8,  0,-220,261.6,0,-293.7,0,  0,261.6,220,0,196,  0],
+                [164.8,0,146.8,130.8,0,110, 0,   0,-110,  0,  0,  0,   0,  0,  0,  0],
+            ],
+            // acidH: "Sub-bass Acid" — low register growl
+            acidH: [
+                [55,   0,  0,  0, 65.4, 0,  0,  0,-73.4, 0,65.4, 0,  55,  0,  0,  0],
+                [73.4, 0,82.4, 0,-98,   0,  0,  0, 82.4, 0,73.4, 0, 65.4, 0, 55,  0],
+                [-55,  0,65.4, 0, 73.4, 0,-82.4,0, 73.4, 0,65.4, 0, -55,  0,  0,  0],
+                [73.4, 0,-55,  0,  0,   0, 65.4,0, -55,  0,  0,  0,   0,  0,  0,  0],
+            ],
+
+            // ——— SCREAM LEAD (extended phrases) ———
+
+            // screamF: "Siren Wail" — long pitch-bending howl
+            screamF: [
+                [-220, 0,  0,  0, 220,261.6,293.7,-329.6, 0,  0,  0,  0, 329.6,293.7,261.6,220],
+                [  0,  0,-261.6,0,  0,  0,261.6,293.7,-329.6,0,  0,  0,   0,  0,-392, 0],
+                [-329.6,329.6,293.7,261.6,-293.7,0,  0,  0, 329.6,-392,-440,0, 392,329.6,-293.7,0],
+                [-261.6,0,  0,  0,-220, 0,  0,  0,   0,  0,  0,  0,   0,  0,  0,  0],
+            ],
+            // screamG: "Dive Bomb" — dramatic descending runs
+            screamG: [
+                [-440, 0,  0,  0,-440,392,329.6,293.7, 261.6,220,-196,0,   0,  0,  0,  0],
+                [-392,329.6,293.7,261.6,-220,196,164.8,146.8,-130.8,0, 0,  0,   0,  0,-220,0],
+                [-440,-392,-329.6,-293.7,-261.6,-220,-196,-164.8,-146.8,-130.8,-110,0, 0,0,0,0],
+                [-329.6,0,-220,0,-329.6,-261.6,-220,-196,-164.8,-146.8,0,0,  0,  0,  0,  0],
+            ],
+            // screamH: "Stutter Glitch" — rapid repeated-note stabs
+            screamH: [
+                [-220, 0,-220, 0,-220, 0,  0,  0,-261.6,0,-261.6,0,-261.6,0,  0,  0],
+                [-293.7,0,-293.7,0, 0, 0,-261.6,0,-261.6,0,  0,  0,-220, 0,-220, 0],
+                [-329.6,-329.6,-329.6,0,-293.7,-293.7,-293.7,0,-261.6,0,-329.6,0,-392,0,-440,0],
+                [-220, 0,-220, 0,-220,-220,-220,-220,-220, 0,  0,  0,   0,  0,  0,  0],
+            ],
+
+            // ——— BASS WAH (extended phrases) ———
+
+            // bassD: "Octave Slap" — bouncy octave jumps
+            bassD: [
+                [-55,  0,110,  0,-55,  0,110,  0,-65.4,0,130.8,0,-65.4,0,130.8,0],
+                [-73.4,0,146.8,0,-73.4,0,146.8,0,-82.4,0,164.8,0, 82.4,0,  0,  0],
+                [-55,  0,110,  0,-82.4,0,164.8,0, -98,  0,196,  0,-110, 0, 55,  0],
+                [-82.4,0,164.8,0,-55,  0,110,  0, -55,  0,  0,  0,   0,  0,  0,  0],
+            ],
+            // bassE: "Rubber Band" — extreme portamento slides
+            bassE: [
+                [55,82.4,110,82.4, 55,73.4,98,73.4,-55,65.4,82.4,65.4, 55,  0,  0,  0],
+                [73.4,98,-110,98, 73.4,55,65.4,82.4,-110,82.4,65.4,55, 73.4, 0,  0,  0],
+                [-55,73.4,98,110,-82.4,65.4,55,73.4, 98,-110,82.4,55, 73.4,98,110,82.4],
+                [55,73.4,-98,73.4, 55,  0,  0,  0, -55,  0,  0,  0,   0,  0,  0,  0],
+            ],
+
+            // ——— SIREN (FM synthesis — metallic howl) ———
+
+            // sirenA: "Rising Alarm" — ascending metallic wail
+            sirenA: [
+                [220,  0,  0,  0,-261.6,0,  0,  0, 293.7,0,  0,  0,-329.6,0,  0,  0],
+                [293.7,0,-329.6,0, 392, 0,-440, 0, 392,  0,329.6,0, 293.7,0,  0,  0],
+                [-261.6,0,293.7,0,-329.6,0,-392,0,-440,  0,  0,  0, 392,  0,-440, 0],
+                [-329.6,0,-293.7,0,261.6,0,220, 0,-261.6,0,  0,  0,   0,  0,  0,  0],
+            ],
+            // sirenB: "Pulse Alarm" — rhythmic FM pulses
+            sirenB: [
+                [-261.6,0,-261.6,0,  0,  0,  0,  0,-261.6,0,-261.6,0,  0,  0,  0,  0],
+                [-329.6,0,-329.6,0,  0,  0,-329.6,0,-329.6,0,  0,  0,  0,  0,  0,  0],
+                [-392, 0,-392, 0,-392, 0,  0,  0,-440, 0,-440, 0,-440, 0,  0,  0],
+                [-329.6,0,  0,  0,-261.6,0,  0,  0,-220, 0,  0,  0,   0,  0,  0,  0],
+            ],
         };
 
-        // ===== 132-bar arrangement (~4:04) =====
+        // ===== 256-bar arrangement (~7:53) =====
         // solo: key into soloBank, soloType: instrument selector
         // Negative notes in phrases = accented, consecutive notes = portamento slide
+        // masterPhaser: true = fade in whole-mix phaser for atmospheric wash
         this.arrangement = [
+            // ═══ ACT I: AWAKENING (40 bars) ═══
+
             // --- Intro & build (8 bars) ---
             { pat: 0, bars: 2, bass: 0 },
             { pat: 1, bars: 2, bass: 1 },
             { pat: 2, bars: 4, bass: 1 },
 
             // --- Acid solo (32 bars) ---
-            { pat: 8, bars: 8, bass: 0, solo: 'acidA', soloType: 'acid' },   // opening x2
-            { pat: 3, bars: 4, bass: 1 },                                     // breathe
-            { pat: 6, bars: 8, bass: 2, solo: 'acidB', soloType: 'acid' },   // climbing x2
-            { pat: 2, bars: 4, bass: 4, solo: 'bassGrooveA', soloType: 'bass' }, // breathe + wah
-            { pat: 6, bars: 4, bass: 4, solo: 'acidC', soloType: 'acid' },   // fast runs
-            { pat: 6, bars: 3, bass: 7, solo: 'acidD', soloType: 'acid' },   // peak
-            { pat: 7, bars: 1, bass: 5 },                                     // fill
+            { pat: 8, bars: 8, bass: 0, solo: 'acidA', soloType: 'acid' },
+            { pat: 3, bars: 4, bass: 1 },
+            { pat: 6, bars: 8, bass: 2, solo: 'acidB', soloType: 'acid' },
+            { pat: 2, bars: 4, bass: 4, solo: 'bassGrooveA', soloType: 'bass' },
+            { pat: 6, bars: 4, bass: 4, solo: 'acidC', soloType: 'acid' },
+            { pat: 6, bars: 3, bass: 7, solo: 'acidD', soloType: 'acid' },
+            { pat: 7, bars: 1, bass: 5 },
+
+            // ═══ ACT II: DESCENT (48 bars) ═══
 
             // --- Groove (8 bars) ---
-            { pat: 2, bars: 4, bass: 1, solo: 'bassGrooveB', soloType: 'bass' }, // wah pulse
+            { pat: 2, bars: 4, bass: 1, solo: 'bassGrooveB', soloType: 'bass' },
             { pat: 3, bars: 3, bass: 2 },
             { pat: 7, bars: 1, bass: 5 },
 
-            // --- Breakdown (8 bars) ---
-            { pat: 4, bars: 4, bass: 3 },
-            { pat: 5, bars: 4, bass: 7 },
+            // --- Breakdown with master phaser (8 bars) ---
+            { pat: 4, bars: 4, bass: 3, masterPhaser: true },
+            { pat: 5, bars: 4, bass: 7, masterPhaser: true },
 
             // --- Scream solo (32 bars) ---
-            { pat: 6, bars: 8, bass: 4, solo: 'screamA', soloType: 'scream' }, // attacks x2
-            { pat: 4, bars: 4, bass: 3 },                                       // breathe
-            { pat: 8, bars: 8, bass: 6, solo: 'screamB', soloType: 'scream' }, // wail x2
-            { pat: 5, bars: 4, bass: 7, solo: 'bassGrooveA', soloType: 'bass' },  // breathe + wah
-            { pat: 6, bars: 4, bass: 7, solo: 'screamC', soloType: 'scream' }, // rapid fire
-            { pat: 6, bars: 3, bass: 2, solo: 'screamD', soloType: 'scream' }, // chaos
-            { pat: 7, bars: 1, bass: 5 },                                       // fill
-
-            // --- Climax & resolution (20 bars) ---
-            { pat: 2, bars: 4, bass: 1, solo: 'bassGrooveB', soloType: 'bass' }, // wah returns
-            { pat: 6, bars: 4, bass: 4 },
-            { pat: 3, bars: 4, bass: 2 },
-            { pat: 3, bars: 4, bass: 2, solo: 'acidE', soloType: 'acid' },     // acid cooldown
-            { pat: 0, bars: 3, bass: 0, solo: 'screamE', soloType: 'scream' }, // scream fade
+            { pat: 6, bars: 8, bass: 4, solo: 'screamA', soloType: 'scream' },
+            { pat: 4, bars: 4, bass: 3 },
+            { pat: 8, bars: 8, bass: 6, solo: 'screamB', soloType: 'scream' },
+            { pat: 5, bars: 4, bass: 7, solo: 'bassGrooveA', soloType: 'bass' },
+            { pat: 6, bars: 4, bass: 7, solo: 'screamC', soloType: 'scream' },
+            { pat: 6, bars: 3, bass: 2, solo: 'screamD', soloType: 'scream' },
             { pat: 7, bars: 1, bass: 5 },
 
-            // --- Bass wah solo (24 bars) ---
-            { pat: 8, bars: 8, bass: 3, solo: 'bassA', soloType: 'bass' },     // funky x2
-            { pat: 4, bars: 4, bass: 3 },                                       // breathe
-            { pat: 8, bars: 8, bass: 3, solo: 'bassB', soloType: 'bass' },     // deep pocket x2
-            { pat: 6, bars: 3, bass: 3, solo: 'bassC', soloType: 'bass' },     // build to loop
-            { pat: 7, bars: 1, bass: 5 },                                       // fill → restart
+            // ═══ ACT III: THE PHASER (52 bars) ═══
+
+            // --- Half-time siren transition (8 bars) ---
+            { pat: 9, bars: 4, bass: 8, solo: 'sirenA', soloType: 'siren' },
+            { pat: 11, bars: 4, bass: 9, solo: 'sirenB', soloType: 'siren' },
+
+            // --- Phaser solo (32 bars) ---
+            { pat: 8, bars: 8, bass: 0, solo: 'phaserA', soloType: 'phaser', masterPhaser: true },
+            { pat: 3, bars: 4, bass: 1, masterPhaser: true },
+            { pat: 10, bars: 8, bass: 8, solo: 'phaserB', soloType: 'phaser', masterPhaser: true },
+            { pat: 6, bars: 8, bass: 9, solo: 'phaserC', soloType: 'phaser' },
+            { pat: 12, bars: 4, bass: 10, solo: 'phaserD', soloType: 'phaser' },
+
+            // --- Phaser cooldown (12 bars) ---
+            { pat: 9, bars: 8, bass: 0, solo: 'phaserE', soloType: 'phaser', masterPhaser: true },
+            { pat: 4, bars: 4, bass: 3, masterPhaser: true },
+
+            // ═══ ACT IV: ESCALATION (48 bars) ═══
+
+            // --- New acid phrases (16 bars) ---
+            { pat: 6, bars: 4, bass: 4, solo: 'acidF', soloType: 'acid' },
+            { pat: 10, bars: 4, bass: 8, solo: 'acidG', soloType: 'acid' },
+            { pat: 6, bars: 4, bass: 2, solo: 'acidH', soloType: 'acid' },
+            { pat: 2, bars: 4, bass: 1 },
+
+            // --- Dual breakdown (8 bars) ---
+            { pat: 11, bars: 4, bass: 9, masterPhaser: true },
+            { pat: 4, bars: 4, bass: 3, masterPhaser: true },
+
+            // --- New scream phrases (16 bars) ---
+            { pat: 6, bars: 4, bass: 7, solo: 'screamF', soloType: 'scream' },
+            { pat: 12, bars: 4, bass: 10, solo: 'screamG', soloType: 'scream' },
+            { pat: 6, bars: 4, bass: 2, solo: 'screamH', soloType: 'scream' },
+            { pat: 3, bars: 4, bass: 1 },
+
+            // --- Bass showcase (8 bars) ---
+            { pat: 8, bars: 4, bass: 3, solo: 'bassD', soloType: 'bass' },
+            { pat: 8, bars: 4, bass: 3, solo: 'bassE', soloType: 'bass' },
+
+            // ═══ ACT V: CLIMAX (68 bars) ═══
+
+            // --- All instruments climax (24 bars) ---
+            { pat: 6, bars: 4, bass: 4, solo: 'acidD', soloType: 'acid' },
+            { pat: 12, bars: 4, bass: 10, solo: 'screamD', soloType: 'scream' },
+            { pat: 10, bars: 4, bass: 9, solo: 'phaserD', soloType: 'phaser' },
+            { pat: 6, bars: 4, bass: 2, solo: 'acidC', soloType: 'acid' },
+            { pat: 12, bars: 4, bass: 8, solo: 'screamC', soloType: 'scream' },
+            { pat: 6, bars: 3, bass: 7, solo: 'phaserC', soloType: 'phaser' },
+            { pat: 7, bars: 1, bass: 5 },
+
+            // --- Extended resolution (20 bars) ---
+            { pat: 2, bars: 4, bass: 1, solo: 'bassGrooveB', soloType: 'bass' },
+            { pat: 6, bars: 4, bass: 4 },
+            { pat: 3, bars: 4, bass: 2 },
+            { pat: 3, bars: 4, bass: 2, solo: 'acidE', soloType: 'acid' },
+            { pat: 0, bars: 3, bass: 0, solo: 'screamE', soloType: 'scream' },
+            { pat: 7, bars: 1, bass: 5 },
+
+            // --- Bass coda (24 bars) ---
+            { pat: 8, bars: 8, bass: 3, solo: 'bassA', soloType: 'bass' },
+            { pat: 4, bars: 4, bass: 3 },
+            { pat: 8, bars: 8, bass: 3, solo: 'bassB', soloType: 'bass' },
+            { pat: 6, bars: 3, bass: 3, solo: 'bassC', soloType: 'bass' },
+            { pat: 7, bars: 1, bass: 5 },
         ];
     }
 
@@ -325,6 +533,9 @@ export class SoundtrackManager {
         this._prevAcidNote = 0;
         this._prevScreamNote = 0;
         this._prevBassNote = 0;
+        this._prevPhaserNote = 0;
+        this._prevSirenNote = 0;
+        this._masterPhaserOn = false;
     }
 
     toggleMute() {
@@ -360,6 +571,36 @@ export class SoundtrackManager {
         this.distortion.connect(this.compressor);
         this.compressor.connect(this.masterGain);
         this.masterGain.connect(ctx.destination);
+
+        // Master phaser: 4-stage allpass chain (wet path added to dry)
+        // Very slow LFO (0.3 Hz) for whole-mix sweep — default off (wet=0)
+        const mpLfo = ctx.createOscillator();
+        mpLfo.type = 'sine';
+        mpLfo.frequency.value = 0.3;
+
+        const mpAllpassFreqs = [600, 1200, 2400, 4800];
+        let mpPrev = this.compressor;
+        for (const baseFreq of mpAllpassFreqs) {
+            const ap = ctx.createBiquadFilter();
+            ap.type = 'allpass';
+            ap.frequency.value = baseFreq;
+            ap.Q.value = 2;
+            const lfoDepth = ctx.createGain();
+            lfoDepth.gain.value = baseFreq * 0.4;
+            mpLfo.connect(lfoDepth);
+            lfoDepth.connect(ap.frequency);
+            mpPrev.connect(ap);
+            mpPrev = ap;
+        }
+
+        this._masterPhaserWet = ctx.createGain();
+        this._masterPhaserWet.gain.value = 0;
+        mpPrev.connect(this._masterPhaserWet);
+        this._masterPhaserWet.connect(this.masterGain);
+        this._masterPhaserOn = false;
+
+        mpLfo.start();
+        this._continuousNodes.push(mpLfo);
 
         // Solo bus with dotted-8th delay for depth
         this.soloBus = ctx.createGain();
@@ -465,16 +706,37 @@ export class SoundtrackManager {
                 } else if (section.soloType === 'bass') {
                     this._playBassWahNote(time, freq, this._prevBassNote, accented);
                     this._prevBassNote = freq;
+                } else if (section.soloType === 'phaser') {
+                    this._playPhaserNote(time, freq, this._prevPhaserNote, accented);
+                    this._prevPhaserNote = freq;
+                } else if (section.soloType === 'siren') {
+                    this._playSirenNote(time, freq, this._prevSirenNote, accented);
+                    this._prevSirenNote = freq;
                 }
             } else {
                 if (section.soloType === 'acid') this._prevAcidNote = 0;
                 else if (section.soloType === 'scream') this._prevScreamNote = 0;
                 else if (section.soloType === 'bass') this._prevBassNote = 0;
+                else if (section.soloType === 'phaser') this._prevPhaserNote = 0;
+                else if (section.soloType === 'siren') this._prevSirenNote = 0;
             }
         } else {
             this._prevAcidNote = 0;
             this._prevScreamNote = 0;
             this._prevBassNote = 0;
+            this._prevPhaserNote = 0;
+            this._prevSirenNote = 0;
+        }
+
+        // Master phaser toggle on bar boundaries
+        if (step === 0 && this._masterPhaserWet) {
+            const wantPhaser = !!section.masterPhaser;
+            if (wantPhaser !== this._masterPhaserOn) {
+                this._masterPhaserOn = wantPhaser;
+                this._masterPhaserWet.gain.setTargetAtTime(
+                    wantPhaser ? 0.5 : 0, time, 0.3
+                );
+            }
         }
     }
 
@@ -793,6 +1055,127 @@ export class SoundtrackManager {
         osc.stop(time + 0.38);
         sub.start(time);
         sub.stop(time + 0.38);
+    }
+
+    _playPhaserNote(time, freq, prevFreq, accented) {
+        // Triangle oscillator + 6-stage allpass chain with shared LFO for shimmery phaser sweep
+        const ctx = this.ctx;
+        const sliding = prevFreq > 0;
+
+        const osc = ctx.createOscillator();
+        osc.type = 'triangle';
+
+        if (sliding) {
+            osc.frequency.setValueAtTime(prevFreq, time);
+            osc.frequency.exponentialRampToValueAtTime(freq, time + 0.06);
+        } else {
+            osc.frequency.setValueAtTime(freq, time);
+        }
+
+        // Shared LFO sweeping allpass frequencies
+        const lfo = ctx.createOscillator();
+        lfo.type = 'sine';
+        lfo.frequency.value = accented ? 2.5 : 1.2;
+
+        // 6-stage allpass chain — staggered base frequencies
+        const allpassFreqs = [800, 1100, 1400, 1700, 2000, 2300];
+        let prev = osc;
+        for (const baseFreq of allpassFreqs) {
+            const ap = ctx.createBiquadFilter();
+            ap.type = 'allpass';
+            ap.frequency.value = baseFreq;
+            ap.Q.value = 5;
+            const lfoDepth = ctx.createGain();
+            lfoDepth.gain.value = baseFreq * 0.5;
+            lfo.connect(lfoDepth);
+            lfoDepth.connect(ap.frequency);
+            prev.connect(ap);
+            prev = ap;
+        }
+
+        // Dry/wet mix merged into output
+        const dryGain = ctx.createGain();
+        dryGain.gain.value = 0.45;
+        osc.connect(dryGain);
+
+        const wetGain = ctx.createGain();
+        wetGain.gain.value = 0.55;
+        prev.connect(wetGain);
+
+        const vol = accented ? 0.20 : 0.14;
+        const output = ctx.createGain();
+        if (sliding) {
+            output.gain.setValueAtTime(vol * 0.8, time);
+            output.gain.setTargetAtTime(vol * 0.5, time + 0.02, 0.12);
+        } else {
+            output.gain.setValueAtTime(vol, time);
+            output.gain.setTargetAtTime(vol * 0.6, time + 0.02, 0.12);
+        }
+        output.gain.exponentialRampToValueAtTime(0.001, time + 0.4);
+
+        dryGain.connect(output);
+        wetGain.connect(output);
+        output.connect(this.soloBus);
+
+        lfo.start(time);
+        lfo.stop(time + 0.4);
+        osc.start(time);
+        osc.stop(time + 0.4);
+    }
+
+    _playSirenNote(time, freq, prevFreq, accented) {
+        // FM synthesis: sine carrier + sine modulator at 3.5x ratio for metallic howl
+        // Bandpass filter sweep for nasal industrial tone, pitch sweep on attack
+        const ctx = this.ctx;
+        const sliding = prevFreq > 0;
+
+        const carrier = ctx.createOscillator();
+        carrier.type = 'sine';
+
+        const modulator = ctx.createOscillator();
+        modulator.type = 'sine';
+
+        // FM modulation depth
+        const modGain = ctx.createGain();
+        modGain.gain.value = freq * (accented ? 1.5 : 1.0);
+        modulator.connect(modGain);
+        modGain.connect(carrier.frequency);
+
+        if (sliding) {
+            carrier.frequency.setValueAtTime(prevFreq, time);
+            carrier.frequency.exponentialRampToValueAtTime(freq, time + 0.06);
+            modulator.frequency.setValueAtTime(prevFreq * 3.5, time);
+            modulator.frequency.exponentialRampToValueAtTime(freq * 3.5, time + 0.06);
+        } else {
+            // Pitch sweep up on attack for alarm effect
+            carrier.frequency.setValueAtTime(freq * 0.7, time);
+            carrier.frequency.exponentialRampToValueAtTime(freq, time + 0.08);
+            modulator.frequency.setValueAtTime(freq * 3.5 * 0.7, time);
+            modulator.frequency.exponentialRampToValueAtTime(freq * 3.5, time + 0.08);
+        }
+
+        // Bandpass sweep for nasal industrial tone
+        const bp = ctx.createBiquadFilter();
+        bp.type = 'bandpass';
+        bp.Q.value = accented ? 8 : 5;
+        bp.frequency.setValueAtTime(freq * 2, time);
+        bp.frequency.exponentialRampToValueAtTime(freq * 8, time + 0.1);
+        bp.frequency.exponentialRampToValueAtTime(freq * 3, time + 0.25);
+
+        const vol = accented ? 0.16 : 0.10;
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(vol, time);
+        gain.gain.setTargetAtTime(vol * 0.5, time + 0.02, 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.3);
+
+        carrier.connect(bp);
+        bp.connect(gain);
+        gain.connect(this.soloBus);
+
+        carrier.start(time);
+        carrier.stop(time + 0.3);
+        modulator.start(time);
+        modulator.stop(time + 0.3);
     }
 
     // ========== Continuous layers ==========
