@@ -11,12 +11,12 @@ const PARTICLE_VERTEX_SHADER = `
     void main(){
         float t = fract(uTime / 3.0 + aPhase);
         vec3 p = position;
-        p.y += t * 2.5;
-        p.x += sin(t * 6.2832 + aPhase * 10.0) * 0.15;
-        p.z += cos(t * 6.2832 + aPhase * 7.0) * 0.15;
+        p.y += t * 3.5;
+        p.x += sin(t * 6.2832 + aPhase * 10.0) * 0.3;
+        p.z += cos(t * 6.2832 + aPhase * 7.0) * 0.3;
         vAlpha = smoothstep(0.0, 0.1, t) * smoothstep(1.0, 0.6, t);
         vec4 mv = modelViewMatrix * vec4(p, 1.0);
-        gl_PointSize = 3.0 * (300.0 / -mv.z);
+        gl_PointSize = 8.0 * (300.0 / -mv.z);
         gl_Position = projectionMatrix * mv;
     }
 `;
@@ -82,10 +82,10 @@ uniform float time;
 varying vec2 vUv;
 void main() {
     vUv = uv;
-    // UV warping — gentle surface undulation
-    vUv += 0.005 * vec2(
-        sin(position.x * 4.0 + time * 1.0),
-        cos(position.z * 4.0 + time * 0.8)
+    // UV warping — visible surface undulation
+    vUv += 0.03 * vec2(
+        sin(position.x * 4.0 + time * 1.2),
+        cos(position.z * 4.0 + time * 1.0)
     );
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 }
@@ -358,15 +358,15 @@ export class EyesBleedManager {
 
         ctx.clearRect(0, 0, w, h);
 
-        // Scanlines — thin dark horizontal lines every 3px
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.04)';
+        // Scanlines — dark horizontal lines every 3px
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
         for (let y = 0; y < h; y += 3) {
             ctx.fillRect(0, y, w, 1);
         }
 
-        // Grain — sparse random noise dots
-        const grainAlpha = 0.03;
-        const dotCount = Math.floor(w * h * 0.002);
+        // Grain — random noise dots
+        const grainAlpha = 0.12;
+        const dotCount = Math.floor(w * h * 0.005);
         for (let i = 0; i < dotCount; i++) {
             const x = (Math.random() * w) | 0;
             const y = (Math.random() * h) | 0;
@@ -384,7 +384,7 @@ export class EyesBleedManager {
     _createParticles(scene, floorMeshes) {
         if (!floorMeshes) return;
 
-        const PARTICLES_PER_CELL = 4;
+        const PARTICLES_PER_CELL = 8;
         const cellPositions = [];
         const cellHues = [];
 
@@ -396,8 +396,8 @@ export class EyesBleedManager {
             const row = parseInt(parts[0]);
             const col = parseInt(parts[1]);
 
-            // ~15% of cells via deterministic hash
-            if ((row * 7 + col * 13 + 37) % 20 >= 3) continue;
+            // ~30% of cells via deterministic hash
+            if ((row * 7 + col * 13 + 37) % 10 >= 3) continue;
 
             // Zone hue from zone hash
             const zoneR = Math.floor(row / 6);
@@ -418,13 +418,13 @@ export class EyesBleedManager {
         let idx = 0;
         for (let c = 0; c < cellPositions.length; c++) {
             const pos = cellPositions[c];
-            const [r, g, b] = hslToRgb(cellHues[c], 0.6, 0.45);
+            const [r, g, b] = hslToRgb(cellHues[c], 0.8, 0.55);
             rSum += r; gSum += g; bSum += b;
 
             for (let p = 0; p < PARTICLES_PER_CELL; p++) {
-                positions[idx * 3]     = pos.x + (Math.random() - 0.5) * 0.8;
+                positions[idx * 3]     = pos.x + (Math.random() - 0.5) * 1.5;
                 positions[idx * 3 + 1] = pos.y;
-                positions[idx * 3 + 2] = pos.z + (Math.random() - 0.5) * 0.8;
+                positions[idx * 3 + 2] = pos.z + (Math.random() - 0.5) * 1.5;
                 phases[idx] = Math.random();
                 idx++;
             }
