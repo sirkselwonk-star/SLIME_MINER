@@ -118,14 +118,12 @@ uniform float time;
 varying vec2 vUv;
 void main() {
     vUv = uv;
-    // UV warping — gentle surface undulation
+    // UV warping — gentle surface undulation (no normal attribute needed)
     vUv += 0.005 * vec2(
         sin(position.x * 4.0 + time * 1.0),
         cos(position.z * 4.0 + time * 0.8)
     );
-    // Geometric breathing — very subtle mesh displacement along normal
-    vec3 displaced = position + normal * sin(time * 1.5 + position.x * 3.0 + position.z * 3.0) * 0.025;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(displaced, 1.0);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 }
 `;
 
