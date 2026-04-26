@@ -96,7 +96,7 @@ function init() {
             if (eyesBleed.isActive) {
                 eyesBleed.deactivate();
             } else {
-                eyesBleed.activate(mazeData.wallMeshes);
+                eyesBleed.activate(mazeData.wallMeshes, mazeData.floorMeshes, mazeData.ceilingMeshes, { renderer, scene, camera });
             }
         }
     });
@@ -483,7 +483,11 @@ function animate() {
         slimesTotal: gameState.slimesTotal
     });
 
-    renderer.render(scene, camera);
+    if (eyesBleed) {
+        eyesBleed.render(renderer, scene, camera);
+    } else {
+        renderer.render(scene, camera);
+    }
 }
 
 function applyViewportSize() {
@@ -507,6 +511,7 @@ function applyViewportSize() {
 
     // Size and center the renderer canvas
     renderer.setSize(vpW, vpH);
+    if (eyesBleed) eyesBleed.resize(vpW, vpH);
     renderer.domElement.style.position = 'absolute';
     renderer.domElement.style.left = offsetX + 'px';
     renderer.domElement.style.top = offsetY + 'px';
