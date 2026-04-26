@@ -64,7 +64,7 @@ const FIRE_FRAGMENT = `
     }
 `;
 
-// --- LIGHTNING (electric sparks that jitter violently) ---
+// --- LIGHTNING (electric sparks that strike downward from ceiling) ---
 const LIGHTNING_VERTEX = `
     attribute float aPhase;
     uniform float uTime;
@@ -74,12 +74,11 @@ const LIGHTNING_VERTEX = `
         // Burst cycle: sparks appear in short flashes
         float cycle = uTime * 1.5 + aPhase * 6.2832;
         float burst = step(0.7, fract(cycle * 0.3 + aPhase));
-        float t = fract(uTime * 3.0 + aPhase);
         vec3 p = position;
-        // Violent jitter
+        // Violent jitter — biased downward from ceiling
         float jitter = burst * step(0.5, fract(sin(uTime * 50.0 + aPhase * 100.0) * 43758.5));
         p.x += (fract(sin(uTime * 30.0 + aPhase * 73.0) * 43758.5) - 0.5) * 1.2 * jitter;
-        p.y += (fract(sin(uTime * 37.0 + aPhase * 91.0) * 43758.5)) * 3.0 * jitter;
+        p.y -= (fract(sin(uTime * 37.0 + aPhase * 91.0) * 43758.5)) * 3.5 * jitter;
         p.z += (fract(sin(uTime * 43.0 + aPhase * 57.0) * 43758.5) - 0.5) * 1.2 * jitter;
         vIntensity = burst;
         vAlpha = burst * (0.5 + 0.5 * sin(uTime * 20.0 + aPhase * 30.0));
@@ -350,7 +349,7 @@ export class EyesBleedManager {
         const { renderer, scene: sc } = renderContext;
         if (sc) {
             this._scene = sc;
-            this._createParticles(sc, floorMeshes);
+            this._createParticles(sc, floorMeshes, ceilingMeshes);
         }
         if (renderer) {
             this._createOverlay(renderer);
@@ -489,8 +488,11 @@ export class EyesBleedManager {
      * V2: Spawn 4 types of cubic-space particle effects across ~60% of floor cells.
      * Zone hash determines effect type: glow orbs, fire, lightning, or snow.
      */
-    _createParticles(scene, floorMeshes) {
+    _createParticles(scene, floorMeshes, ceilingMeshes) {
         if (!floorMeshes) return;
+
+        // Index of lightning in CUBIC_EFFECTS
+        const LIGHTNING_IDX = CUBIC_EFFECTS.findIndex(e => e.name === 'lightning');
 
         // Bucket cells by effect type
         const buckets = CUBIC_EFFECTS.map(() => ({ positions: [], hues: [] }));
@@ -513,7 +515,12 @@ export class EyesBleedManager {
             const effectIdx = zoneHash % CUBIC_EFFECTS.length;
             const hue = zoneHash / 65536.0;
 
-            buckets[effectIdx].positions.push(mesh.position);
+            // Lightning sources from ceiling, others from floor
+            if (effectIdx === LIGHTNING_IDX && ceilingMeshes && ceilingMeshes[key]) {
+                buckets[effectIdx].positions.push(ceilingMeshes[key].position);
+            } else {
+                buckets[effectIdx].positions.push(mesh.position);
+            }
             buckets[effectIdx].hues.push(hue);
         }
 
