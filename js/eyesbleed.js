@@ -129,12 +129,60 @@ const SNOW_FRAGMENT = `
     }
 `;
 
-// Effect type definitions for the 4 cubic-space particle effects
+// --- WAVE SYNTH (oscillating particles forming interference wave patterns) ---
+const WAVESYNTH_VERTEX = `
+    attribute float aPhase;
+    uniform float uTime;
+    varying float vAlpha;
+    varying float vWave;
+    void main(){
+        vec3 p = position;
+        float t = uTime;
+        // Multiple overlapping sine waves at different frequencies
+        float wave1 = sin(p.x * 3.0 + t * 2.5) * 0.6;
+        float wave2 = sin(p.z * 4.0 + t * 1.8) * 0.4;
+        float wave3 = sin((p.x + p.z) * 2.0 - t * 3.2) * 0.3;
+        float wave4 = sin(length(p.xz) * 2.5 - t * 2.0) * 0.35;
+        float combined = wave1 + wave2 + wave3 + wave4;
+        // Particles ride the wave surface
+        p.y += 1.5 + combined;
+        // Horizontal ripple displacement
+        p.x += sin(p.z * 5.0 + t * 1.5 + aPhase * 6.28) * 0.12;
+        p.z += cos(p.x * 5.0 + t * 1.3 + aPhase * 4.0) * 0.12;
+        // Wave peak = bright, trough = dim
+        vWave = combined * 0.3 + 0.5;
+        vAlpha = 0.4 + 0.6 * smoothstep(-0.5, 1.0, combined);
+        vec4 mv = modelViewMatrix * vec4(p, 1.0);
+        gl_PointSize = (5.0 + 4.0 * vWave) * (300.0 / -mv.z);
+        gl_Position = projectionMatrix * mv;
+    }
+`;
+const WAVESYNTH_FRAGMENT = `
+    varying float vAlpha;
+    varying float vWave;
+    uniform vec3 uColor;
+    void main(){
+        float d = length(gl_PointCoord - 0.5) * 2.0;
+        float glow = exp(-d * d * 2.0);
+        // Cycle through synth colors based on wave height
+        vec3 lo = vec3(0.1, 0.0, 0.4);   // deep purple in troughs
+        vec3 mid = vec3(0.0, 0.8, 0.6);  // teal at midpoint
+        vec3 hi = vec3(1.0, 0.3, 0.8);   // hot pink at peaks
+        vec3 col = mix(lo, mid, smoothstep(0.0, 0.5, vWave));
+        col = mix(col, hi, smoothstep(0.5, 1.0, vWave));
+        // Add white-hot core at peaks
+        col += vec3(0.8, 0.9, 1.0) * pow(vWave, 3.0) * glow;
+        gl_FragColor = vec4(col * glow, vAlpha * glow);
+    }
+`;
+
+// Effect type definitions for the 5 cubic-space particle effects
 const CUBIC_EFFECTS = [
-    { name: 'glow',      vert: GLOW_VERTEX,      frag: GLOW_FRAGMENT,      perCell: 8,  useZoneColor: true  },
-    { name: 'fire',      vert: FIRE_VERTEX,       frag: FIRE_FRAGMENT,      perCell: 12, useZoneColor: false },
-    { name: 'lightning',  vert: LIGHTNING_VERTEX,   frag: LIGHTNING_FRAGMENT,  perCell: 10, useZoneColor: false },
-    { name: 'snow',      vert: SNOW_VERTEX,       frag: SNOW_FRAGMENT,      perCell: 14, useZoneColor: false },
+    { name: 'glow',      vert: GLOW_VERTEX,       frag: GLOW_FRAGMENT,       perCell: 8,  useZoneColor: true  },
+    { name: 'fire',      vert: FIRE_VERTEX,        frag: FIRE_FRAGMENT,       perCell: 12, useZoneColor: false },
+    { name: 'lightning',  vert: LIGHTNING_VERTEX,    frag: LIGHTNING_FRAGMENT,   perCell: 10, useZoneColor: false },
+    { name: 'snow',      vert: SNOW_VERTEX,        frag: SNOW_FRAGMENT,       perCell: 14, useZoneColor: false },
+    { name: 'wavesynth', vert: WAVESYNTH_VERTEX,   frag: WAVESYNTH_FRAGMENT,  perCell: 20, useZoneColor: false },
 ];
 
 // HSL → RGB helper for zone-based particle coloring
