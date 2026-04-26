@@ -216,6 +216,8 @@ function buildLevel() {
             if (loadingText) loadingText.textContent = `LOADING GALLERY: ${loaded} / ${total}`;
         }).then(() => {
             if (loadingEl) loadingEl.style.display = 'none';
+            gallery.cacheWorldPositions();
+            gameState.slimesTotal = gallery.paintings.length;
         });
 
         // Eyes Bleed manager
@@ -399,6 +401,9 @@ function animate() {
         // Update game logic
         gameState.update(camera.position, mazeData?.exitWorld, dt);
 
+        // Check SLIME painting proximity
+        gameState.checkPaintingProximity(camera.position, gallery?.paintings);
+
         // Update visited cells for minimap
         const gridPos = getPlayerGridPos();
         if (gridPos) {
@@ -473,7 +478,9 @@ function animate() {
         rocketAmmo: gameState.rocketAmmo,
         damageFlash: gameState.damageFlash,
         enemyPositions: enemyManager ? enemyManager.getEnemyPositions() : [],
-        eyesBleedActive: eyesBleed ? eyesBleed.isActive : false
+        eyesBleedActive: eyesBleed ? eyesBleed.isActive : false,
+        slimesAdmired: gameState.slimesAdmired,
+        slimesTotal: gameState.slimesTotal
     });
 
     renderer.render(scene, camera);

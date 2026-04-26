@@ -1,5 +1,6 @@
 // gallery.js — SLIME.GALLERY NFT artwork on maze walls (sprite atlas version)
 
+import * as THREE from 'three';
 import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
 
 // Module-level state — persists across level restarts
@@ -208,9 +209,17 @@ export class GalleryManager {
                 }
 
                 wall.add(group);
-                this.paintings.push({ group, artMat, plateMat, artTex, pTex });
+                this.paintings.push({ group, artMat, plateMat, artTex, pTex, label });
             }
         });
+    }
+
+    cacheWorldPositions() {
+        const pos = new THREE.Vector3();
+        for (const p of this.paintings) {
+            p.group.getWorldPosition(pos);
+            p.worldPos = pos.clone();
+        }
     }
 
     cleanup() {

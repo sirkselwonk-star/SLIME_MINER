@@ -10,6 +10,11 @@ export class GameState {
         this.oreRequiredPct = 0.5; // need 50% ore to unlock exit
         this.exitUnlocked = false;
 
+        // SLIME painting tracking
+        this.slimesAdmired = 0;
+        this.slimesTotal = 0;
+        this.admiredPaintings = new Set();
+
         // Combat state
         this.playerHP = 100;
         this.playerMaxHP = 100;
@@ -105,6 +110,21 @@ export class GameState {
             const dz = playerPos.z - exitPos.z;
             if (Math.sqrt(dx * dx + dz * dz) < exitRadius) {
                 this.state = 'LEVEL_COMPLETE';
+            }
+        }
+    }
+
+    checkPaintingProximity(playerPos, paintings) {
+        if (!paintings) return;
+        for (let i = 0; i < paintings.length; i++) {
+            if (this.admiredPaintings.has(i)) continue;
+            const wp = paintings[i].worldPos;
+            if (!wp) continue;
+            const dx = playerPos.x - wp.x;
+            const dz = playerPos.z - wp.z;
+            if (dx * dx + dz * dz < 16) { // 4-unit radius squared
+                this.admiredPaintings.add(i);
+                this.slimesAdmired++;
             }
         }
     }

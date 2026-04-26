@@ -25,6 +25,7 @@ export class HUD {
         this._drawMinimap(ctx, state, w, h);
         this._drawCompass(ctx, state, w, h);
         this._drawOreCounter(ctx, state, w, h);
+        this._drawSlimeCounter(ctx, state, w, h);
         this._drawSpeedometer(ctx, state, w, h);
         this._drawCrosshair(ctx, w, h);
         this._drawHealthBar(ctx, state, w, h);
@@ -300,6 +301,30 @@ export class HUD {
         ctx.strokeRect(barX, barY, barW, barH);
 
         ctx.fillStyle = '#fb923c';
+        ctx.fillRect(barX, barY, barW * pct, barH);
+    }
+
+    _drawSlimeCounter(ctx, state, w, h) {
+        const { slimesAdmired, slimesTotal } = state;
+        if (slimesTotal === undefined || slimesTotal === 0) return;
+
+        ctx.fillStyle = '#c084fc';
+        ctx.font = 'bold 14px monospace';
+        ctx.textAlign = 'right';
+        ctx.fillText(`SLIME: ${slimesAdmired || 0} / ${slimesTotal}`, w - 15, 50);
+
+        // Progress bar
+        const barW = 120;
+        const barH = 6;
+        const barX = w - 15 - barW;
+        const barY = 57;
+        const pct = slimesTotal > 0 ? (slimesAdmired || 0) / slimesTotal : 0;
+
+        ctx.strokeStyle = '#c084fc';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(barX, barY, barW, barH);
+
+        ctx.fillStyle = '#c084fc';
         ctx.fillRect(barX, barY, barW * pct, barH);
     }
 
