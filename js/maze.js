@@ -179,6 +179,8 @@ function buildMazeGeometry(grid, rows, cols, startPos, exitPos, THREE) {
 
     const mazeGroup = new THREE.Group();
     const wallMeshes = {};
+    const floorMeshes = {};
+    const ceilingMeshes = {};
     const lights = [];
 
     // Offset so maze is centered at origin
@@ -201,6 +203,7 @@ function buildMazeGeometry(grid, rows, cols, startPos, exitPos, THREE) {
             floor.rotation.x = -Math.PI / 2;
             floor.position.set(x + corridorSize / 2, 0, z + corridorSize / 2);
             mazeGroup.add(floor);
+            floorMeshes[`${r},${c}`] = floor;
 
             // Ceiling
             const ceiling = new THREE.Mesh(
@@ -210,6 +213,7 @@ function buildMazeGeometry(grid, rows, cols, startPos, exitPos, THREE) {
             ceiling.rotation.x = Math.PI / 2;
             ceiling.position.set(x + corridorSize / 2, wallHeight, z + corridorSize / 2);
             mazeGroup.add(ceiling);
+            ceilingMeshes[`${r},${c}`] = ceiling;
 
             // Walls
             if (cell.walls.N) {
@@ -303,6 +307,8 @@ function buildMazeGeometry(grid, rows, cols, startPos, exitPos, THREE) {
     return {
         group: mazeGroup,
         wallMeshes,
+        floorMeshes,
+        ceilingMeshes,
         corridorSize,
         offsetX,
         offsetZ,
