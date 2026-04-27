@@ -30,7 +30,7 @@ let soundtrack;
 let gallery;
 let eyesBleed;
 let touchControls;
-const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+const isTouchDevice = matchMedia('(pointer: coarse) and (hover: none)').matches;
 
 // Locked aspect ratio
 const TARGET_ASPECT = 16 / 9;

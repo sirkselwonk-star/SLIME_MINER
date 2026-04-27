@@ -3,7 +3,7 @@
 export class TouchControlsManager {
     constructor(controls) {
         this.controls = controls;
-        this.isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+        this.isTouchDevice = matchMedia('(pointer: coarse) and (hover: none)').matches;
         this.enabled = false;
 
         // Left stick state (MOVE — translation)
