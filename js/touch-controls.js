@@ -398,26 +398,32 @@ export class TouchControlsManager {
     }
 
     _layoutLandscape(w, h) {
-        const { vpW, offsetX, offsetY } = this._getViewport(w, h);
-        const stickY = h - 80;
-        const leftStickX = 90;
-        const rightStickX = w - 90;
+        const { vpW, offsetX } = this._getViewport(w, h);
 
-        // Sticks — bottom corners
+        // Sticks — inside the pillarbox side bars, near the bottom
+        const stickY = h - 80;
+        const leftBarCenter = Math.floor(offsetX / 2);         // center of left black bar
+        const rightBarCenter = w - Math.floor(offsetX / 2);    // center of right black bar
+        // If bars are very narrow, keep sticks at minimum inset
+        const leftStickX = Math.max(60, leftBarCenter);
+        const rightStickX = Math.min(w - 60, rightBarCenter);
+
         this._posStick(this.leftBase, leftStickX, stickY);
         this._posStick(this.rightBase, rightStickX, stickY);
 
-        // Touch zones
+        // Touch zones — full-height strips covering each side bar + some game edge
         this.leftZone.style.cssText = `
-            position: absolute; left: 0; top: 0; width: 35%; height: 100%;
+            position: absolute; left: 0; top: 0;
+            width: ${offsetX + 60}px; height: 100%;
             pointer-events: auto; touch-action: none;
         `;
         this.rightZone.style.cssText = `
-            position: absolute; right: 0; top: 0; width: 35%; height: 100%;
+            position: absolute; right: 0; top: 0;
+            width: ${offsetX + 60}px; height: 100%;
             pointer-events: auto; touch-action: none;
         `;
 
-        // Action buttons — center column
+        // Action buttons — center column (on game viewport)
         const margin = 14;
         const bSize = 56;
         const centerX = Math.floor(w / 2);
@@ -428,29 +434,30 @@ export class TouchControlsManager {
         this._posBtn(this.buttons.up, centerX - bSize - margin + 4, bottomBase - bSize - margin);
         this._posBtn(this.buttons.down, centerX - bSize - margin + 4, bottomBase);
 
-        // Option buttons — above each stick, in the black bar outside game viewport
-        // Left side: EYE + MUT above left stick
-        const optY = stickY - 100 - 16; // above the stick base
+        // Option buttons — stacked vertically in each pillarbox bar, above sticks
+        const optGap = 8;
         const optSize = 44;
-        this._posBtn(this.buttons.eyesBleed, leftStickX - optSize - 6, optY);
-        this._posBtn(this.buttons.mute, leftStickX + 6, optY);
-        // Pause — above right stick
-        this._posBtn(this.buttons.pause, rightStickX - 22, optY);
+        // Left bar: EYE and MUT stacked
+        this._posBtn(this.buttons.eyesBleed, leftStickX - optSize / 2, stickY - 50 - optSize - optGap);
+        this._posBtn(this.buttons.mute, leftStickX - optSize / 2, stickY - 50 - (optSize + optGap) * 2);
+        // Right bar: PAUSE
+        this._posBtn(this.buttons.pause, rightStickX - optSize / 2, stickY - 50 - optSize - optGap);
     }
 
     _layoutPortrait(w, h) {
         const { vpH, offsetY } = this._getViewport(w, h);
         const controlTop = offsetY + vpH; // bottom edge of game viewport
         const barH = h - controlTop;
-        const stickY = controlTop + Math.floor(barH * 0.6);
+
+        // Sticks — lower portion of bottom bar
+        const stickY = controlTop + Math.floor(barH * 0.65);
         const leftStickX = 80;
         const rightStickX = w - 80;
 
-        // Sticks — lower portion of bottom bar
         this._posStick(this.leftBase, leftStickX, stickY);
         this._posStick(this.rightBase, rightStickX, stickY);
 
-        // Touch zones
+        // Touch zones — cover the bottom bar
         this.leftZone.style.cssText = `
             position: absolute; left: 0; top: ${controlTop}px;
             width: 40%; height: ${barH}px;
@@ -462,7 +469,7 @@ export class TouchControlsManager {
             pointer-events: auto; touch-action: none;
         `;
 
-        // Action buttons — center strip
+        // Action buttons — center strip in bottom bar
         const margin = 10;
         const bSize = 50;
         const centerX = Math.floor(w / 2) - Math.floor(bSize / 2);
@@ -473,12 +480,14 @@ export class TouchControlsManager {
         this._posBtn(this.buttons.up, centerX, bottomBase - (bSize + margin) * 2);
         this._posBtn(this.buttons.down, centerX, bottomBase - (bSize + margin) * 3);
 
-        // Option buttons — row above sticks, in the black bar
-        const optY = controlTop + 8; // just below game viewport edge
-        const optSize = 40;
-        this._posBtn(this.buttons.eyesBleed, leftStickX - optSize / 2 - 4, optY);
-        this._posBtn(this.buttons.mute, leftStickX + optSize / 2 + 4, optY);
-        this._posBtn(this.buttons.pause, rightStickX - 22, optY);
+        // Option buttons — horizontal row at top of bottom bar (just below game viewport)
+        const optY = controlTop + 10;
+        const optSize = 44;
+        const optGap = 10;
+        // Spread across the top of the bar
+        this._posBtn(this.buttons.eyesBleed, leftStickX - optSize / 2, optY);
+        this._posBtn(this.buttons.mute, leftStickX + optSize / 2 + optGap, optY);
+        this._posBtn(this.buttons.pause, rightStickX - optSize / 2, optY);
     }
 
     _posBtn(el, x, y) {
