@@ -56,25 +56,26 @@ export class TouchControlsManager {
             user-select: none; -webkit-user-select: none;
         `;
 
-        // Left stick zone
+        // Touch zones (capture touch input — invisible, cover their half)
         this.leftZone = this._createZone();
+        this.rightZone = this._createZone();
+        o.appendChild(this.leftZone);
+        o.appendChild(this.rightZone);
+
+        // Stick visuals (fixed position, children of overlay for absolute positioning)
         const leftStick = this._createStick('#4ade80');
         this.leftBase = leftStick.base;
         this.leftKnob = leftStick.knob;
         this.leftLabel = leftStick.label;
         this.leftLabel.textContent = 'MOVE';
-        this.leftZone.appendChild(this.leftBase);
-        o.appendChild(this.leftZone);
+        o.appendChild(this.leftBase);
 
-        // Right stick zone
-        this.rightZone = this._createZone();
         const rightStick = this._createStick('#22d3ee');
         this.rightBase = rightStick.base;
         this.rightKnob = rightStick.knob;
         this.rightLabel = rightStick.label;
         this.rightLabel.textContent = 'LOOK';
-        this.rightZone.appendChild(this.rightBase);
-        o.appendChild(this.rightZone);
+        o.appendChild(this.rightBase);
 
         // Action buttons
         this._createButtons(o);
@@ -93,15 +94,15 @@ export class TouchControlsManager {
     }
 
     _createStick(color) {
-        // Base ring (hidden until touch)
+        // Base ring — always visible at fixed position
         const base = document.createElement('div');
         base.style.cssText = `
             position: absolute; width: 130px; height: 130px;
             border: 2.5px solid ${color}55;
-            border-radius: 50%; display: none;
-            transform: translate(-50%, -50%);
+            border-radius: 50%;
             background: ${color}0d;
             box-shadow: 0 0 20px ${color}15;
+            pointer-events: none;
         `;
 
         // Knob
@@ -114,9 +115,10 @@ export class TouchControlsManager {
             left: 50%; top: 50%;
             transform: translate(-50%, -50%);
             box-shadow: 0 0 12px ${color}30;
+            pointer-events: none;
         `;
 
-        // Label (shows above the stick when active)
+        // Label — always visible above the base
         const label = document.createElement('div');
         label.style.cssText = `
             position: absolute; left: 50%; top: -22px;
@@ -246,6 +248,11 @@ export class TouchControlsManager {
         else this.rightTouchId = id;
     }
 
+    _getBaseCenter(base) {
+        const rect = base.getBoundingClientRect();
+        return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+    }
+
     _onStickStart(e, side) {
         e.preventDefault();
         const s = this._getStickState(side);
@@ -253,15 +260,23 @@ export class TouchControlsManager {
 
         const t = e.changedTouches[0];
         this._setTouchId(side, t.identifier);
-        s.origin.x = t.clientX;
-        s.origin.y = t.clientY;
-        s.pos.x = 0;
-        s.pos.y = 0;
 
-        s.base.style.display = 'block';
-        s.base.style.left = t.clientX + 'px';
-        s.base.style.top = t.clientY + 'px';
-        s.knob.style.transform = 'translate(-50%, -50%)';
+        // Origin is always the fixed base center
+        const center = this._getBaseCenter(s.base);
+        s.origin.x = center.x;
+        s.origin.y = center.y;
+
+        // Immediately compute deflection from where the touch landed
+        let dx = t.clientX - s.origin.x;
+        let dy = t.clientY - s.origin.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > this.stickRadius) {
+            dx = (dx / dist) * this.stickRadius;
+            dy = (dy / dist) * this.stickRadius;
+        }
+        s.pos.x = dx / this.stickRadius;
+        s.pos.y = dy / this.stickRadius;
+        s.knob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
     }
 
     _onStickMove(e, side) {
@@ -295,7 +310,6 @@ export class TouchControlsManager {
             this._setTouchId(side, null);
             s.pos.x = 0;
             s.pos.y = 0;
-            s.base.style.display = 'none';
             s.knob.style.transform = 'translate(-50%, -50%)';
         }
     }
@@ -362,35 +376,43 @@ export class TouchControlsManager {
         }
     }
 
+    _posStick(base, cx, cy) {
+        base.style.left = (cx - 65) + 'px';
+        base.style.top = (cy - 65) + 'px';
+    }
+
     _layoutLandscape(w, h) {
-        // Left stick zone: left 35%
+        const stickY = h - 100; // bottom area, thumb-height from edge
+        const stickInset = 110;  // inset from screen edge
+
+        // Left stick: fixed bottom-left
+        this._posStick(this.leftBase, stickInset, stickY);
+
+        // Right stick: fixed bottom-right
+        this._posStick(this.rightBase, w - stickInset, stickY);
+
+        // Touch zones — generous area around each stick
         this.leftZone.style.cssText = `
             position: absolute; left: 0; top: 0; width: 35%; height: 100%;
             pointer-events: auto; touch-action: none;
         `;
-
-        // Right stick zone: right 35%
         this.rightZone.style.cssText = `
             position: absolute; right: 0; top: 0; width: 35%; height: 100%;
             pointer-events: auto; touch-action: none;
         `;
 
-        // Buttons — center column between the two sticks
+        // Buttons — center column
         const margin = 14;
         const bSize = 56;
         const centerX = Math.floor(w / 2);
         const bottomBase = h - margin - bSize;
 
-        // Fire buttons — center bottom
         this._posBtn(this.buttons.gun, centerX + 4, bottomBase);
         this._posBtn(this.buttons.rocket, centerX + 4, bottomBase - bSize - margin);
-        // Vertical — center, above fire
         this._posBtn(this.buttons.up, centerX - bSize - margin + 4, bottomBase - bSize - margin);
         this._posBtn(this.buttons.down, centerX - bSize - margin + 4, bottomBase);
-        // Utility — top center
         this._posBtn(this.buttons.eyesBleed, centerX - bSize - margin + 4, margin);
         this._posBtn(this.buttons.mute, centerX + 4, margin);
-        // Pause — top right corner
         this._posBtn(this.buttons.pause, w - margin - 44, margin);
     }
 
@@ -398,15 +420,21 @@ export class TouchControlsManager {
         const gameH = Math.floor(w / (16 / 9));
         const barH = h - gameH;
         const controlTop = gameH;
+        const stickY = controlTop + Math.floor(barH / 2) + 10;
+        const stickInset = 90;
 
-        // Left stick zone: left half of bottom bar
+        // Left stick: fixed center-left of bottom bar
+        this._posStick(this.leftBase, stickInset, stickY);
+
+        // Right stick: fixed center-right of bottom bar
+        this._posStick(this.rightBase, w - stickInset, stickY);
+
+        // Touch zones
         this.leftZone.style.cssText = `
             position: absolute; left: 0; top: ${controlTop}px;
             width: 40%; height: ${barH}px;
             pointer-events: auto; touch-action: none;
         `;
-
-        // Right stick zone: right half of bottom bar
         this.rightZone.style.cssText = `
             position: absolute; right: 0; top: ${controlTop}px;
             width: 40%; height: ${barH}px;
@@ -425,7 +453,6 @@ export class TouchControlsManager {
         this._posBtn(this.buttons.down, centerX, bottomBase - (bSize + margin) * 3);
         this._posBtn(this.buttons.eyesBleed, centerX - bSize - margin, bottomBase);
         this._posBtn(this.buttons.mute, centerX + bSize + margin, bottomBase);
-        // Pause — top right of game viewport
         this._posBtn(this.buttons.pause, w - margin - 44, margin);
     }
 
