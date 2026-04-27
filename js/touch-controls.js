@@ -462,8 +462,8 @@ export class TouchControlsManager {
         // Option buttons — above left stick
         this._posBtn(this.buttons.eyesBleed, leftStickX - optSize / 2, stickY - 50 - optSize - gap);
         this._posBtn(this.buttons.mute, leftStickX + optSize / 2 + gap, stickY - 50 - optSize - gap);
-        // Pause — top of bottom bar
-        this._posBtn(this.buttons.pause, rightStickX - optSize / 2, controlTop + gap);
+        // Pause — top-center of bottom bar (away from both button columns)
+        this._posBtn(this.buttons.pause, Math.floor(w / 2) - optSize / 2, controlTop + gap);
     }
 
     _posBtn(el, x, y) {
