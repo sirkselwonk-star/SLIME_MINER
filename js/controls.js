@@ -1,21 +1,31 @@
-// controls.js — 6DOF ship controls with momentum
+// controls.js — first-person walkthrough controls (WASD + mouse + jump)
 import * as THREE from 'three';
 
 export class ShipControls {
     constructor(camera) {
         this.camera = camera;
 
-        // Movement state
+        // Horizontal velocity only — vertical lives in this.verticalVelocity
         this.velocity = { x: 0, y: 0, z: 0 };
-        this.rotVelocity = { pitch: 0, yaw: 0, roll: 0 };
 
-        // Tuning — comfort-focused
+        // Tuning
         this.thrustPower = 24;
-        this.brakeFactor = 0.93;   // more drift/coast after releasing keys
-        this.rotSpeed = 1.0;       // slower roll
-        this.rotDamping = 0.88;
+        this.brakeFactor = 0.93;   // horizontal drift/coast
         this.maxSpeed = 20;
         this.mouseSensitivity = 0.003;
+
+        // FPS body — eye-height floor, ceiling clamp, gravity, jump
+        this.eyeHeight = 1.5;     // matches mazeData.startWorld.y so spawn doesn't snap
+        this.ceilingY = 2.55;
+        this.gravity = 30;
+        this.jumpStrength = 7;
+        this.verticalVelocity = 0;
+        this.isGrounded = true;
+
+        // Look state — tracked as Eulers so pitch can be clamped (no somersaults)
+        this.yaw = 0;
+        this.pitch = 0;
+        this.maxPitch = Math.PI / 2 - 0.05;
 
         // Mouse smoothing state
         this.keys = {};
@@ -37,6 +47,11 @@ export class ShipControls {
         this.touchThrust = { x: 0, y: 0 };
 
         this._bindEvents();
+
+        // Capture starting yaw/pitch from camera's current orientation
+        const e0 = new THREE.Euler().setFromQuaternion(this.camera.quaternion, 'YXZ');
+        this.yaw = e0.y;
+        this.pitch = e0.x;
     }
 
     _bindEvents() {
@@ -113,36 +128,14 @@ export class ShipControls {
         this.smoothDX += (clampedDX - this.smoothDX) * mouseLerp;
         this.smoothDY += (clampedDY - this.smoothDY) * mouseLerp;
 
-        const yawDelta = -this.smoothDX * this.mouseSensitivity;
-        const pitchDelta = -this.smoothDY * this.mouseSensitivity;
+        this.yaw += -this.smoothDX * this.mouseSensitivity;
+        this.pitch += -this.smoothDY * this.mouseSensitivity;
+        this.pitch = Math.max(-this.maxPitch, Math.min(this.maxPitch, this.pitch));
+        cam.quaternion.setFromEuler(new THREE.Euler(this.pitch, this.yaw, 0, 'YXZ'));
 
-        // Apply yaw (around camera's local Y — stays correct when upside down)
-        const yawQuat = new THREE.Quaternion().setFromAxisAngle(
-            new THREE.Vector3(0, 1, 0), yawDelta
-        );
-        cam.quaternion.multiply(yawQuat);
-
-        // Apply pitch (around local X)
-        const pitchQuat = new THREE.Quaternion().setFromAxisAngle(
-            new THREE.Vector3(1, 0, 0), pitchDelta
-        );
-        cam.quaternion.multiply(pitchQuat);
-
-        // Roll from Q/E
-        let rollInput = 0;
-        if (this.keys['KeyQ']) rollInput += 1;
-        if (this.keys['KeyE']) rollInput -= 1;
-        if (rollInput !== 0) {
-            const rollQuat = new THREE.Quaternion().setFromAxisAngle(
-                new THREE.Vector3(0, 0, 1), rollInput * this.rotSpeed * dt
-            );
-            cam.quaternion.multiply(rollQuat);
-        }
-
-        // --- Translation ---
-        const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(cam.quaternion);
-        const right = new THREE.Vector3(1, 0, 0).applyQuaternion(cam.quaternion);
-        const up = new THREE.Vector3(0, 1, 0);
+        // --- Translation (horizontal — forward/right derived from yaw alone) ---
+        const forward = new THREE.Vector3(-Math.sin(this.yaw), 0, -Math.cos(this.yaw));
+        const right = new THREE.Vector3(Math.cos(this.yaw), 0, -Math.sin(this.yaw));
 
         let thrust = new THREE.Vector3(0, 0, 0);
 
@@ -150,8 +143,6 @@ export class ShipControls {
         if (this.keys['KeyS']) thrust.add(forward.clone().multiplyScalar(-this.thrustPower * dt));
         if (this.keys['KeyA']) thrust.add(right.clone().multiplyScalar(-this.thrustPower * dt));
         if (this.keys['KeyD']) thrust.add(right.clone().multiplyScalar(this.thrustPower * dt));
-        if (this.keys['Space']) thrust.add(up.clone().multiplyScalar(this.thrustPower * dt * 0.5));
-        if (this.keys['ShiftLeft'] || this.keys['ShiftRight']) thrust.add(up.clone().multiplyScalar(-this.thrustPower * dt * 0.5));
 
         // Analog touch thrust (joystick x = strafe, y = forward/back)
         if (this.touchActive) {
@@ -164,40 +155,48 @@ export class ShipControls {
         }
 
         this.velocity.x += thrust.x;
-        this.velocity.y += thrust.y;
         this.velocity.z += thrust.z;
 
         // Damping — frame-rate independent (normalized to 60fps)
         const damping = Math.pow(this.brakeFactor, dt * 60);
         this.velocity.x *= damping;
-        this.velocity.y *= damping;
         this.velocity.z *= damping;
 
-        // Clamp speed
-        const speed = Math.sqrt(
-            this.velocity.x ** 2 + this.velocity.y ** 2 + this.velocity.z ** 2
-        );
-        if (speed > this.maxSpeed) {
-            const scale = this.maxSpeed / speed;
+        // Clamp horizontal speed
+        const hSpeed = Math.sqrt(this.velocity.x ** 2 + this.velocity.z ** 2);
+        if (hSpeed > this.maxSpeed) {
+            const scale = this.maxSpeed / hSpeed;
             this.velocity.x *= scale;
-            this.velocity.y *= scale;
             this.velocity.z *= scale;
         }
 
-        // Proposed new position
+        // --- Vertical (jump + gravity) ---
+        if (this.keys['Space'] && this.isGrounded) {
+            this.verticalVelocity = this.jumpStrength;
+            this.isGrounded = false;
+        }
+        this.verticalVelocity -= this.gravity * dt;
+        let newY = cam.position.y + this.verticalVelocity * dt;
+
+        if (newY <= this.eyeHeight) {
+            newY = this.eyeHeight;
+            this.verticalVelocity = 0;
+            this.isGrounded = true;
+        }
+        if (newY >= this.ceilingY) {
+            newY = this.ceilingY;
+            if (this.verticalVelocity > 0) this.verticalVelocity = 0;
+        }
+
+        // --- Horizontal proposed position ---
         let newX = cam.position.x + this.velocity.x * dt;
-        let newY = cam.position.y + this.velocity.y * dt;
         let newZ = cam.position.z + this.velocity.z * dt;
 
-        // Clamp Y to corridor height
+        // Collision detection against wall AABBs (resolve in X/Z only — Y handled above)
         const shipRadius = 0.4;
-        newY = Math.max(shipRadius, Math.min(2.6, newY));
-
-        // Collision detection against wall AABBs
         if (colliders) {
             const r = shipRadius;
             for (const box of colliders) {
-                // Check AABB overlap with ship sphere approximated as AABB
                 const overlapX = newX + r > box.minX && newX - r < box.maxX;
                 const overlapY = newY + r > box.minY && newY - r < box.maxY;
                 const overlapZ = newZ + r > box.minZ && newZ - r < box.maxZ;
